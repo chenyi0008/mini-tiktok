@@ -49,31 +49,51 @@ func InitRedis(addr, password string, db int) *redis.Client {
 	return rdb
 }
 
-func NewRedisCli(c *redis.Client) *DefaultModel {
-	return &DefaultModel{
+func NewRedisCli(c *redis.Client) *DefaultRedisCliModel {
+	return &DefaultRedisCliModel{
 		c,
 	}
 }
 
 type (
-	DefaultModel struct {
+	DefaultRedisCliModel struct {
 		client *redis.Client
 	}
 )
 
-func (m *DefaultModel) NumOfFavor(ctx context.Context, VideoId uint64) (int, error) {
-	result, err := m.client.SCard(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, VideoId)).Result()
+func (m *DefaultRedisCliModel) NumOfFavor(ctx context.Context, videoId uint64) (int, error) {
+	result, err := m.client.SCard(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, videoId)).Result()
 	if err != nil {
 		return -1, err
 	}
 	return int(result), nil
 }
-func (m *DefaultModel) SetFavor(ctx context.Context, VideoId, UserId uint64) (int, error) {
-	result, err := m.client.SAdd(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, VideoId), UserId).Result()
+func (m *DefaultRedisCliModel) SetFavor(ctx context.Context, videoId, userId uint64) (int, error) {
+	result, err := m.client.SAdd(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, videoId), userId).Result()
 	return int(result), err
 }
 
-func (m *DefaultModel) CancelFavor(ctx context.Context, VideoId, UserId uint64) (int, error) {
-	result, err := m.client.SRem(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, VideoId), UserId).Result()
+func (m *DefaultRedisCliModel) CancelFavor(ctx context.Context, videoId, userId uint64) (int, error) {
+	result, err := m.client.SRem(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, videoId), userId).Result()
 	return int(result), err
+}
+
+func (m *DefaultRedisCliModel) GetIsFavorite(ctx context.Context, videoId, userId uint64) (bool, error) {
+	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, videoId)
+	exists, err := m.client.SIsMember(ctx, setKey, userId).Result()
+	if err != nil {
+		return false, err
+	}
+	// 根据查询结果进行处理
+	if exists {
+		return true, nil
+	} else {
+		return false, nil
+	}
+}
+
+func (m *DefaultRedisCliModel) AddFavorite(ctx context.Context, videoId, userId uint64) error {
+	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, videoId)
+	_, err := m.client.SAdd(ctx, setKey, userId).Result()
+	return err
 }

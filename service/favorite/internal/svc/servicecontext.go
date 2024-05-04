@@ -13,7 +13,7 @@ type ServiceContext struct {
 	Redis         *redis.Client
 	FavoriteModel *models.DefaultFavoriteModel
 	CommentModel  *models.DefaultCommentModel
-	RedisCli      *models.DefaultModel
+	RedisCli      *models.DefaultRedisCliModel
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {

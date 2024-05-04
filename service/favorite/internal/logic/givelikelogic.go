@@ -25,8 +25,6 @@ func NewGiveLikeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GiveLike
 }
 
 func (l *GiveLikeLogic) GiveLike(in *favorite.GiveLikeRequest) (*favorite.Response, error) {
-	logx.Debug(in)
-	logx.Debug("userId:", in.UserId)
 	_, err := l.svcCtx.RedisCli.SetFavor(l.ctx, in.VideoId, in.UserId)
 	if err != nil {
 		logx.Error(err)

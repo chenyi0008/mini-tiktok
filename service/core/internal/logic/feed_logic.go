@@ -7,6 +7,7 @@ import (
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
 	"mini-tiktok/service/core/models"
+	"mini-tiktok/service/favorite/favorite"
 	"strconv"
 	"time"
 
@@ -105,11 +106,23 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 			},
 			PlayURL:       item.PlayURL,
 			CoverURL:      item.CoverURL,
-			IsFavorite:    true, // todo favorite
-			CommentCount:  0,    // todo comment count
-			FavoriteCount: 0,    // todo favorite count
+			CommentCount:  0, // todo comment count
+			FavoriteCount: 0, // todo favorite count
 		}
 		resp.VideoList = append(resp.VideoList, videoRes)
+	}
+
+	if req.UserId != 0 {
+		for i := 0; i < len(resp.VideoList); i++ {
+			res, err := l.svcCtx.FavoriteRpc.IsFavorite(l.ctx, &favorite.IsFavoriteRequest{
+				UserId:  uint64(req.UserId),
+				VideoId: uint64(resp.VideoList[i].ID),
+			})
+			if err != nil {
+				logx.Error(err)
+			}
+			resp.VideoList[i].IsFavorite = res.IsFavorite
+		}
 	}
 
 	//videos, _ := l.svcCtx.VideoModel.ListByCreatedAt(int64(req.LatestTime), uint(define.N))

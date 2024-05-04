@@ -24,9 +24,9 @@ func NewIsFavoriteLogic(ctx context.Context, svcCtx *svc.ServiceContext) *IsFavo
 }
 
 func (l *IsFavoriteLogic) IsFavorite(in *favorite.IsFavoriteRequest) (*favorite.IsFavoriteResponse, error) {
-	res, err := l.svcCtx.FavoriteModel.IsFavor(uint(in.VideoId), uint(in.UserId))
-
+	isFavorite, err := l.svcCtx.RedisCli.GetIsFavorite(l.ctx, in.VideoId, in.UserId)
+	//res, err := l.svcCtx.FavoriteModel.IsFavor(uint(in.VideoId), uint(in.UserId))
 	return &favorite.IsFavoriteResponse{
-		IsFavorite: res,
+		IsFavorite: isFavorite,
 	}, err
 }

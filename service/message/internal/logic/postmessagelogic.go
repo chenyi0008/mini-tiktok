@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"mini-tiktok/service/message/internal/svc"
-	"mini-tiktok/service/message/message"
+	"mini-tiktok/service/message/pb/message"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

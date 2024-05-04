@@ -6,7 +6,7 @@ package messageclient
 import (
 	"context"
 
-	"mini-tiktok/service/message/message"
+	"mini-tiktok/service/message/pb/message"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"

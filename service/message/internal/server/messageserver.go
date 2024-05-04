@@ -8,7 +8,7 @@ import (
 
 	"mini-tiktok/service/message/internal/logic"
 	"mini-tiktok/service/message/internal/svc"
-	"mini-tiktok/service/message/message"
+	"mini-tiktok/service/message/pb/message"
 )
 
 type MessageServer struct {

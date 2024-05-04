@@ -7,7 +7,7 @@ import (
 	"mini-tiktok/service/message/internal/config"
 	"mini-tiktok/service/message/internal/server"
 	"mini-tiktok/service/message/internal/svc"
-	"mini-tiktok/service/message/message"
+	"mini-tiktok/service/message/pb/message"
 
 	"github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"

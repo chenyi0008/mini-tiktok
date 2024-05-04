@@ -4,8 +4,9 @@ import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/zrpc"
 	"mini-tiktok/service/favorite/pb/favorite"
-	"mini-tiktok/service/follow/follow"
-	"mini-tiktok/service/message/message"
+	"mini-tiktok/service/follow/pb/follow"
+
+	"mini-tiktok/service/message/pb/message"
 )
 
 var FavoriteClient favorite.FavoriteClient

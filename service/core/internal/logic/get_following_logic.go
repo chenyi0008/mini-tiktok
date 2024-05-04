@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/jinzhu/copier"
-	"mini-tiktok/service/follow/follow"
+	"mini-tiktok/service/follow/pb/follow"
 
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"

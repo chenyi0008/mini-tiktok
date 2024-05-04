@@ -6,7 +6,7 @@ package followclient
 import (
 	"context"
 
-	"mini-tiktok/service/follow/follow"
+	"mini-tiktok/service/follow/pb/follow"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"

@@ -8,8 +8,8 @@ import (
 	"mini-tiktok/service/core/internal/middleware"
 	"mini-tiktok/service/core/models"
 	"mini-tiktok/service/favorite/pb/favorite"
-	"mini-tiktok/service/follow/follow"
-	"mini-tiktok/service/message/message"
+	"mini-tiktok/service/follow/pb/follow"
+	"mini-tiktok/service/message/pb/message"
 )
 
 type ServiceContext struct {

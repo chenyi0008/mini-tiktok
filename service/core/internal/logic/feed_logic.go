@@ -61,12 +61,12 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 	}
 
 	idList := make([]uint64, length)
-	for _, item := range scoreArr {
+	for i, item := range scoreArr {
 		num, err := strconv.ParseUint(item.Member.(string), 10, 32)
 		if err != nil {
 			logx.Error(err)
 		}
-		idList = append(idList, num)
+		idList[i] = num
 	}
 
 	//使用mapreduce并发查询

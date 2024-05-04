@@ -6,9 +6,9 @@ package server
 import (
 	"context"
 
-	"mini-tiktok/service/follow/follow"
 	"mini-tiktok/service/follow/internal/logic"
 	"mini-tiktok/service/follow/internal/svc"
+	"mini-tiktok/service/follow/pb/follow"
 )
 
 type FollowServer struct {

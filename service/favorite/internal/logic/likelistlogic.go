@@ -3,8 +3,8 @@ package logic
 import (
 	"context"
 	"fmt"
-	"mini-tiktok/service/favorite/favorite"
 	"mini-tiktok/service/favorite/internal/svc"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )

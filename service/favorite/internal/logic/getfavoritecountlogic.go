@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logc"
-	"mini-tiktok/service/favorite/favorite"
 	"mini-tiktok/service/favorite/internal/svc"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -31,7 +31,6 @@ func (l *GetFavoriteCountLogic) GetFavoriteCount(in *favorite.GetFavoriteCountRe
 	}
 	if err == redis.Nil {
 		count, err2 := l.svcCtx.FavoriteModel.CountByVideoId(uint(in.VideoId))
-		logc.Info(l.ctx, "2.count: ", count, "  err: ", err)
 		return &favorite.GetFavoriteCountResponse{
 			Count: uint64(count),
 		}, err2

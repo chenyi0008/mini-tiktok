@@ -7,7 +7,7 @@ import (
 	"mini-tiktok/service/core/internal/config"
 	"mini-tiktok/service/core/internal/middleware"
 	"mini-tiktok/service/core/models"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 	"mini-tiktok/service/follow/follow"
 	"mini-tiktok/service/message/message"
 )

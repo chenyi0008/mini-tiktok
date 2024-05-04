@@ -5,7 +5,7 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 )
 
 type PostCommentLogic struct {

@@ -6,9 +6,9 @@ package server
 import (
 	"context"
 
-	"mini-tiktok/service/favorite/favorite"
 	"mini-tiktok/service/favorite/internal/logic"
 	"mini-tiktok/service/favorite/internal/svc"
+	"mini-tiktok/service/favorite/pb/favorite"
 )
 
 type FavoriteServer struct {
@@ -60,4 +60,9 @@ func (s *FavoriteServer) GetFavoriteCount(ctx context.Context, in *favorite.GetF
 func (s *FavoriteServer) IsFavorite(ctx context.Context, in *favorite.IsFavoriteRequest) (*favorite.IsFavoriteResponse, error) {
 	l := logic.NewIsFavoriteLogic(ctx, s.svcCtx)
 	return l.IsFavorite(in)
+}
+
+func (s *FavoriteServer) IsFavoriteBatch(ctx context.Context, in *favorite.IsFavoriteBatchRequest) (*favorite.IsFavoriteBatchResponse, error) {
+	l := logic.NewIsFavoriteBatchLogic(ctx, s.svcCtx)
+	return l.IsFavoriteBatch(in)
 }

@@ -10,6 +10,8 @@ goctl api new core
 go run core.go -f etc/core-api.yaml
 # 使用api文件生成代码
 goctl api go -api core.api -dir . -style go_zero
+# proto生成代码
+goctl rpc protoc xx.proto --go_out=./pb --go-grpc_out=./pb --zrpc_out=.
 ```
 
 腾讯云COS后台地址：https://console.cloud.tencent.com/cos/bucket

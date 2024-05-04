@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/jinzhu/copier"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"

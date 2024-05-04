@@ -6,7 +6,7 @@ package favoriteclient
 import (
 	"context"
 
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
@@ -22,6 +22,8 @@ type (
 	GetFavoriteCountRequest  = favorite.GetFavoriteCountRequest
 	GetFavoriteCountResponse = favorite.GetFavoriteCountResponse
 	GiveLikeRequest          = favorite.GiveLikeRequest
+	IsFavoriteBatchRequest   = favorite.IsFavoriteBatchRequest
+	IsFavoriteBatchResponse  = favorite.IsFavoriteBatchResponse
 	IsFavoriteRequest        = favorite.IsFavoriteRequest
 	IsFavoriteResponse       = favorite.IsFavoriteResponse
 	LikeListRequest          = favorite.LikeListRequest
@@ -40,6 +42,7 @@ type (
 		GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error)
 		GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error)
 		IsFavorite(ctx context.Context, in *IsFavoriteRequest, opts ...grpc.CallOption) (*IsFavoriteResponse, error)
+		IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error)
 	}
 
 	defaultFavorite struct {
@@ -91,4 +94,9 @@ func (m *defaultFavorite) GetFavoriteCount(ctx context.Context, in *GetFavoriteC
 func (m *defaultFavorite) IsFavorite(ctx context.Context, in *IsFavoriteRequest, opts ...grpc.CallOption) (*IsFavoriteResponse, error) {
 	client := favorite.NewFavoriteClient(m.cli.Conn())
 	return client.IsFavorite(ctx, in, opts...)
+}
+
+func (m *defaultFavorite) IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error) {
+	client := favorite.NewFavoriteClient(m.cli.Conn())
+	return client.IsFavoriteBatch(ctx, in, opts...)
 }

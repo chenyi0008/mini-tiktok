@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"

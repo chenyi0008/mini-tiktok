@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/zeromicro/go-zero/core/discov"
 	"github.com/zeromicro/go-zero/zrpc"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 	"mini-tiktok/service/follow/follow"
 	"mini-tiktok/service/message/message"
 )

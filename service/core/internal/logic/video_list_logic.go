@@ -4,7 +4,7 @@ import (
 	"context"
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"github.com/jinzhu/copier"
 	"github.com/zeromicro/go-zero/core/logx"

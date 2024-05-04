@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"github.com/zeromicro/go-zero/core/logx"
 	"mini-tiktok/common/consts"
 	"sync"
 	"time"
@@ -90,6 +91,37 @@ func (m *DefaultRedisCliModel) GetIsFavorite(ctx context.Context, videoId, userI
 	} else {
 		return false, nil
 	}
+}
+
+// GetIsFavoriteBatch 批量获取点赞信息
+func (m *DefaultRedisCliModel) GetIsFavoriteBatch(ctx context.Context, videoId []uint64, userId uint64) ([]bool, error) {
+	pipe := m.client.Pipeline()
+	length := len(videoId)
+	result := make([]bool, length)
+	for _, value := range videoId {
+		key := fmt.Sprintf("%s%d", consts.VideoFavor, value)
+		pipe.SIsMember(ctx, key, userId)
+	}
+	exec, err := pipe.Exec(ctx)
+	if err != nil {
+		return result, err
+	}
+
+	// 获取每个命令的结果
+	for i, cmder := range exec {
+		key := fmt.Sprintf("%s%d", consts.VideoFavor, videoId[i])
+		cmd, ok := cmder.(*redis.BoolCmd)
+		if ok {
+			exists, err := cmd.Result()
+			str := pipe.SIsMember(ctx, key, userId).String()
+			logx.Info(str)
+			if err != nil {
+				return result, err
+			}
+			result[i] = exists
+		}
+	}
+	return result, nil
 }
 
 func (m *DefaultRedisCliModel) AddFavorite(ctx context.Context, videoId, userId uint64) error {

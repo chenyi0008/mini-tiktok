@@ -7,7 +7,7 @@ import (
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
 	"mini-tiktok/service/core/models"
-	"mini-tiktok/service/favorite/favorite"
+	"mini-tiktok/service/favorite/pb/favorite"
 	"strconv"
 	"time"
 
@@ -39,7 +39,8 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		logx.Error(err)
 	}
 	// redis没有缓存 从mysql读取
-	if len(scoreArr) == 0 {
+	length := len(scoreArr)
+	if length == 0 {
 		videoList, err2 := l.svcCtx.VideoModel.ListAll()
 		if err2 != nil {
 			logx.Error(err2)
@@ -59,24 +60,29 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		}
 	}
 
+	idList := make([]uint64, length)
+	for _, item := range scoreArr {
+		num, err := strconv.ParseUint(item.Member.(string), 10, 32)
+		if err != nil {
+			logx.Error(err)
+		}
+		idList = append(idList, num)
+	}
+
 	//使用mapreduce并发查询
 	f1 := func(source chan<- interface{}) {
-		for _, v := range scoreArr {
-			num, err := strconv.Atoi(v.Member.(string))
-			if err != nil {
-				logx.Error(err)
-			}
-			source <- num
+		for _, v := range idList {
+			source <- v
 		}
 	}
 	f2 := func(item interface{}, writer mr.Writer[*models.VideoModel], cancel func(error)) {
-		id := item.(int)
-		video, err := l.svcCtx.RedisCli.GetVideoInfo(l.ctx, id)
+		id := item.(uint64)
+		video, err := l.svcCtx.RedisCli.GetVideoInfo(l.ctx, int(id))
 		if err != nil && err != redis.Nil {
 			logx.Error(err)
 		}
 		if video == nil {
-			video, err = l.svcCtx.VideoModel.FindOneById(id)
+			video, err = l.svcCtx.VideoModel.FindOneById(int(id))
 			if err != nil {
 				logx.Error(err)
 				cancel(err)
@@ -113,15 +119,16 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 	}
 
 	if req.UserId != 0 {
+		batch, err := l.svcCtx.FavoriteRpc.IsFavoriteBatch(l.ctx, &favorite.IsFavoriteBatchRequest{
+			IsFavoriteList: idList,
+			UserId:         uint64(req.UserId),
+		})
+		if err != nil {
+			l.Logger.Error(err)
+		}
+
 		for i := 0; i < len(resp.VideoList); i++ {
-			res, err := l.svcCtx.FavoriteRpc.IsFavorite(l.ctx, &favorite.IsFavoriteRequest{
-				UserId:  uint64(req.UserId),
-				VideoId: uint64(resp.VideoList[i].ID),
-			})
-			if err != nil {
-				logx.Error(err)
-			}
-			resp.VideoList[i].IsFavorite = res.IsFavorite
+			resp.VideoList[i].IsFavorite = batch.IsFavorite[i]
 		}
 	}
 

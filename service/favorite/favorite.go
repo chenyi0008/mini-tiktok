@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/zeromicro/go-zero/core/conf"
-	"mini-tiktok/service/favorite/favorite"
 	"mini-tiktok/service/favorite/internal/config"
 	"mini-tiktok/service/favorite/internal/server"
 	"mini-tiktok/service/favorite/internal/svc"
+	"mini-tiktok/service/favorite/pb/favorite"
 
 	"github.com/zeromicro/go-zero/core/service"
 	"github.com/zeromicro/go-zero/zrpc"

@@ -38,9 +38,10 @@ service Favorite {
   rpc GetCommentCount(GetCommentCountRequest) returns(GetCommentCountResponse);
   rpc GetFavoriteCount(GetFavoriteCountRequest) returns(GetFavoriteCountResponse);
   rpc IsFavorite(IsFavoriteRequest) returns(IsFavoriteResponse);
+  rpc IsFavoriteBatch(IsFavoriteBatchRequest) returns(IsFavoriteBatchResponse);
 }
 message IsFavoriteBatchRequest{
-  repeated bool isFavoriteList = 1;
+  repeated uint64 isFavoriteList = 1;
   uint64 userId = 2;
 }
 

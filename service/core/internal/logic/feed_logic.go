@@ -2,11 +2,11 @@ package logic
 
 import (
 	"context"
+	"github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/mr"
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
 	"mini-tiktok/service/core/models"
-	"reflect"
 	"strconv"
 	"time"
 
@@ -58,10 +58,9 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		}
 	}
 
+	//使用mapreduce并发查询
 	f1 := func(source chan<- interface{}) {
 		for _, v := range scoreArr {
-			logx.Info(v.Member)
-			logx.Info(reflect.TypeOf(v.Member))
 			num, err := strconv.Atoi(v.Member.(string))
 			if err != nil {
 				logx.Error(err)
@@ -70,11 +69,24 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		}
 	}
 	f2 := func(item interface{}, writer mr.Writer[*models.VideoModel], cancel func(error)) {
-		oneVideo, err := l.svcCtx.VideoModel.FindOneById(item.(int))
-		if err != nil {
-			cancel(err)
+		id := item.(int)
+		video, err := l.svcCtx.RedisCli.GetVideoInfo(l.ctx, id)
+		if err != nil && err != redis.Nil {
+			logx.Error(err)
 		}
-		writer.Write(oneVideo)
+		if video == nil {
+			video, err = l.svcCtx.VideoModel.FindOneById(id)
+			if err != nil {
+				logx.Error(err)
+				cancel(err)
+			}
+			err := l.svcCtx.RedisCli.SetVideoInfo(l.ctx, video)
+			if err != nil {
+				logx.Error(err)
+				cancel(err)
+			}
+		}
+		writer.Write(video)
 	}
 	f3 := func(pipe <-chan *models.VideoModel, writer mr.Writer[[]*models.VideoModel], cancel func(error)) {
 		lists := make([]*models.VideoModel, 0)
@@ -91,8 +103,11 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 				ID:   int(item.Author.ID),
 				Name: item.Author.Name,
 			},
-			PlayURL:  item.PlayURL,
-			CoverURL: item.CoverURL,
+			PlayURL:       item.PlayURL,
+			CoverURL:      item.CoverURL,
+			IsFavorite:    true, // todo favorite
+			CommentCount:  0,    // todo comment count
+			FavoriteCount: 0,    // todo favorite count
 		}
 		resp.VideoList = append(resp.VideoList, videoRes)
 	}

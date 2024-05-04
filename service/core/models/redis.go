@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis/v8"
+	"math/rand"
 	"mini-tiktok/common/consts"
 	"mini-tiktok/service/core/define"
+	"time"
 )
 
 func NewRedisCli(c *redis.Client) *RedisCliModel {
@@ -50,14 +52,20 @@ func (m *RedisCliModel) ZAddToVideoSortedSet(ctx context.Context, list []VideoMo
 	return err
 }
 
-func (m *RedisCliModel) SetVideoInfo(ctx context.Context, video *Video) error {
+func (m *RedisCliModel) SetVideoInfo(ctx context.Context, video *VideoModel) error {
 	jsonData, err := json.Marshal(video)
 	if err != nil {
 		return err
 	}
 	// 存储对象到 Redis
 	key := fmt.Sprintf("%s%d", consts.VideoInfo, video.ID)
-	set := m.client.Set(ctx, key, jsonData, 0)
+
+	//生成随机数 防止缓存雪崩
+	rand.Seed(time.Now().UnixNano())
+
+	// 生成随机整数
+	randomInt := rand.Intn(100)
+	set := m.client.Set(ctx, key, jsonData, time.Hour+time.Duration(randomInt)*time.Minute)
 	_, err = set.Result()
 	if err != nil {
 		return errors.Errorf("err: %s  redis feedback: %s", err.Error(), set.String())
@@ -65,17 +73,19 @@ func (m *RedisCliModel) SetVideoInfo(ctx context.Context, video *Video) error {
 	return nil
 }
 
-func (m *RedisCliModel) GetVideoInfo(ctx context.Context, id uint) (*Video, error) {
+func (m *RedisCliModel) GetVideoInfo(ctx context.Context, id int) (*VideoModel, error) {
 	key := fmt.Sprintf("%s%d", consts.VideoInfo, id)
 	get := m.client.Get(ctx, key)
 	result, err := get.Result()
-	if err != nil {
+	if err != nil && err != redis.Nil {
 		return nil, errors.Errorf("err: %s  redis feedback: %s", err.Error(), get.String())
+	} else if err == redis.Nil {
+		return nil, redis.Nil
 	}
-	video := &Video{}
+	video := &VideoModel{}
 	err = json.Unmarshal([]byte(result), video)
 	if err != nil {
 		return nil, err
 	}
-	return video, nil
+	return video, err
 }

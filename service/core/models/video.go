@@ -41,6 +41,12 @@ func (m *DefaultVideoModel) ListByCreatedAt(latestTime int64, N uint) ([]VideoMo
 	return videoList, err
 }
 
+func (m *DefaultVideoModel) ListAll() ([]VideoModel, error) {
+	videoList := make([]VideoModel, 0)
+	err := m.Db.Preload("Author").Order("id desc").Find(&videoList).Error
+	return videoList, err
+}
+
 func (m *DefaultVideoModel) List() ([]VideoModel, error) {
 	videoList := make([]VideoModel, 0)
 	err := m.Db.Model(&VideoModel{}).Preload("Author").Find(&videoList).Error
@@ -68,4 +74,10 @@ func (m *DefaultVideoModel) ListInIds(arr []uint64) ([]VideoModel, error) {
 	videoList := make([]VideoModel, 0)
 	err := m.Db.Preload("Author").Where("id in ?", arr).Find(&videoList).Error
 	return videoList, err
+}
+
+func (m *DefaultVideoModel) FindOneById(id int) (*VideoModel, error) {
+	video := &VideoModel{}
+	err := m.Db.Preload("Author").Where("id = ?", id).Find(&video).Error
+	return video, err
 }

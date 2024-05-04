@@ -17,6 +17,7 @@ import (
 
 var configFile = flag.String("f", "service/favorite/etc/favorite.yaml", "the config file")
 var nacosConfigFile = flag.String("q", "service/favorite/etc/nacos.yaml", "the config file")
+var mode = flag.String("mode", "dev", "run environment")
 
 func main() {
 	flag.Parse()
@@ -24,6 +25,9 @@ func main() {
 	var c config.Config
 	var nacosConfig config.NacosConf
 	conf.MustLoad(*nacosConfigFile, &nacosConfig)
+	if *mode == "dev" {
+		c.Log.Encoding = "explan"
+	}
 	nacosConfig.LoadConfig(&c)
 	ctx := svc.NewServiceContext(c)
 

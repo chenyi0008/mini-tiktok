@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"mini-tiktok/common/consts"
 	"mini-tiktok/service/core/define"
 	"mini-tiktok/service/core/helper"
 
@@ -30,13 +31,13 @@ func (l *UserLoginLogic) UserLogin(req *types.UserLoginRequest) (resp *types.Use
 	user, err := l.svcCtx.UserModel.GetByName(req.Username)
 	if err != nil {
 		resp.StatusMsg = "不存在此用户"
-		resp.StatusCode = 1
+		resp.StatusCode = consts.FAILED
 		return
 	}
 
 	if user.Password != helper.Md5(req.Password) {
 		resp.StatusMsg = "密码错误"
-		resp.StatusCode = 1
+		resp.StatusCode = consts.FAILED
 		return
 	}
 
@@ -44,7 +45,7 @@ func (l *UserLoginLogic) UserLogin(req *types.UserLoginRequest) (resp *types.Use
 
 	resp.UserId = int(user.ID)
 	if err != nil {
-		resp.StatusCode = 1
+		resp.StatusCode = consts.FAILED
 		resp.StatusMsg = "生成token失败"
 		return
 	}

@@ -32,7 +32,6 @@ func (l *UserInfoLogic) UserInfo(req *types.UserInfoRequest) (resp *types.UserIn
 		resp.StatusMsg = "token无效"
 		return
 	}
-
 	resp.User.Name = user.Username
 	resp.User.ID = int(user.Id)
 

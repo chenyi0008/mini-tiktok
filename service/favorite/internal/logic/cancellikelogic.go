@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"mini-tiktok/common/consts"
 
 	"mini-tiktok/service/favorite/favorite"
 	"mini-tiktok/service/favorite/internal/svc"
@@ -24,15 +25,16 @@ func NewCancelLikeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Cancel
 }
 
 func (l *CancelLikeLogic) CancelLike(in *favorite.CancelLikeRequest) (*favorite.Response, error) {
-	err := l.svcCtx.FavoriteModel.CancelLike(in.UserId, in.VideoId)
+	_, err := l.svcCtx.RedisCli.CancelFavor(l.ctx, in.VideoId, in.UserId)
+	//err = l.svcCtx.FavoriteModel.CancelLike(in.UserId, in.VideoId)
 	if err != nil {
 		return &favorite.Response{
-			Code:    1,
+			Code:    consts.FAILED,
 			Message: "取消失败",
 		}, nil
 	}
 	return &favorite.Response{
-		Code:    0,
+		Code:    consts.SUCCEED,
 		Message: "取消成功",
 	}, nil
 }

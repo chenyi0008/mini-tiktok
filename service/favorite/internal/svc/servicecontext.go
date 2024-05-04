@@ -24,7 +24,7 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:        c,
 		Mysql:         db,
 		Redis:         redis,
-		RedisCli:      models.NewDefaultModel(redis),
+		RedisCli:      models.NewRedisCli(redis),
 		FavoriteModel: models.NewUserModel(db),
 		CommentModel:  models.NewCommentModel(db),
 	}

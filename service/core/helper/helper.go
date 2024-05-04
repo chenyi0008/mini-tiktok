@@ -69,6 +69,7 @@ func CosUpload(r *http.Request) (string, error) {
 	})
 
 	file, fileHeader, err := r.FormFile("data")
+
 	// Ext取后缀 扩展名 extension
 	key := define.TencentFilePrefix + GetUUID() + path.Ext(fileHeader.Filename)
 
@@ -97,7 +98,7 @@ func FileUploadToJpg(data *[]byte) (string, error) {
 	})
 
 	// Ext取后缀 扩展名 extension
-	key := "mini-tiktok/" + GetUUID() + ".jpg"
+	key := define.TencentFilePrefix + GetUUID() + ".jpg"
 
 	_, err := client.Object.Put(
 		context.Background(), key, bytes.NewReader(*data), nil,

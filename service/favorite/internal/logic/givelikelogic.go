@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"mini-tiktok/common/consts"
 
 	"mini-tiktok/service/favorite/favorite"
 	"mini-tiktok/service/favorite/internal/svc"
@@ -24,12 +25,22 @@ func NewGiveLikeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GiveLike
 }
 
 func (l *GiveLikeLogic) GiveLike(in *favorite.GiveLikeRequest) (*favorite.Response, error) {
-	logx.Info(in)
-	logx.Info("userId:", in.UserId)
-	err := l.svcCtx.FavoriteModel.GiveLike(in.UserId, in.VideoId)
+	logx.Debug(in)
+	logx.Debug("userId:", in.UserId)
+	_, err := l.svcCtx.RedisCli.SetFavor(l.ctx, in.VideoId, in.UserId)
 	if err != nil {
+		logx.Error(err)
 		return &favorite.Response{
-			Code:    1,
+			Code:    consts.FAILED,
+			Message: "点赞失败",
+		}, nil
+	}
+
+	//err = l.svcCtx.FavoriteModel.GiveLike(in.UserId, in.VideoId)
+	if err != nil {
+		logx.Error(err)
+		return &favorite.Response{
+			Code:    consts.FAILED,
 			Message: "点赞失败",
 		}, nil
 	}

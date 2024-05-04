@@ -1,0 +1,5 @@
+service/**/define
+service/**/etc/**
+log
+cache
+

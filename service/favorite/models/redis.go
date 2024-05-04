@@ -49,7 +49,7 @@ func InitRedis(addr, password string, db int) *redis.Client {
 	return rdb
 }
 
-func NewDefaultModel(c *redis.Client) *DefaultModel {
+func NewRedisCli(c *redis.Client) *DefaultModel {
 	return &DefaultModel{
 		c,
 	}
@@ -62,10 +62,18 @@ type (
 )
 
 func (m *DefaultModel) NumOfFavor(ctx context.Context, VideoId uint64) (int, error) {
-	result, err := m.client.SCard(ctx, fmt.Sprintf("%s%d", consts.VideoFavorPrefix, VideoId)).Result()
+	result, err := m.client.SCard(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, VideoId)).Result()
 	if err != nil {
 		return -1, err
 	}
 	return int(result), nil
+}
+func (m *DefaultModel) SetFavor(ctx context.Context, VideoId, UserId uint64) (int, error) {
+	result, err := m.client.SAdd(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, VideoId), UserId).Result()
+	return int(result), err
+}
 
+func (m *DefaultModel) CancelFavor(ctx context.Context, VideoId, UserId uint64) (int, error) {
+	result, err := m.client.SRem(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, VideoId), UserId).Result()
+	return int(result), err
 }

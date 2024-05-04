@@ -27,10 +27,8 @@ func NewGetFavoriteCountLogic(ctx context.Context, svcCtx *svc.ServiceContext) *
 func (l *GetFavoriteCountLogic) GetFavoriteCount(in *favorite.GetFavoriteCountRequest) (*favorite.GetFavoriteCountResponse, error) {
 	count, err := l.svcCtx.RedisCli.NumOfFavor(l.ctx, in.VideoId)
 	if err != nil {
-		logc.Info(l.ctx, "1.count: ", count, "  err: ", err.Error())
-		logc.Error(l.ctx, "1.count: ", count, "  err: ", err.Error())
+		logc.Error(l.ctx, err.Error())
 	}
-	//fmt.Println("1.count: ", count, "  err: ", err.Error())
 	if err == redis.Nil {
 		count, err2 := l.svcCtx.FavoriteModel.CountByVideoId(uint(in.VideoId))
 		logc.Info(l.ctx, "2.count: ", count, "  err: ", err)

@@ -21,7 +21,6 @@ func main() {
 	var c config.Config
 	//conf.MustLoad(*configFile, &c)
 	conf.MustLoad(*nacosConfigFile, &nacosConf)
-
 	nacosConf.LoadConfig(&c)
 
 	server := rest.MustNewServer(c.RestConf)

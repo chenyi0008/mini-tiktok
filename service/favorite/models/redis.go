@@ -6,6 +6,8 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
 	"mini-tiktok/common/consts"
+	"reflect"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -128,4 +130,42 @@ func (m *DefaultRedisCliModel) AddFavorite(ctx context.Context, videoId, userId 
 	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, videoId)
 	_, err := m.client.SAdd(ctx, setKey, userId).Result()
 	return err
+}
+
+// GetFavoriteCountBatch 批量获取点赞数量
+func (m *DefaultRedisCliModel) GetFavoriteCountBatch(ctx context.Context, videoId []uint64) ([]int, []int, error) {
+	missedRecordIdx := make([]int, 0)
+	pipe := m.client.Pipeline()
+	length := len(videoId)
+	result := make([]int, length)
+	for _, value := range videoId {
+		pipe.HGet(ctx, consts.UserFavoriteCount, string(value))
+	}
+	exec, err := pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return nil, nil, err
+	}
+	// 获取每个命令的结果
+	for i, cmder := range exec {
+		cmd, ok := cmder.(*redis.StringCmd)
+		if ok {
+			res, err := cmd.Result()
+			if err != nil && err != redis.Nil {
+				panic(err)
+				fmt.Println(reflect.TypeOf(err))
+				return nil, nil, err
+			}
+			if err == redis.Nil {
+				missedRecordIdx = append(missedRecordIdx, i)
+				result[i] = -1
+			} else {
+				atoi, err := strconv.Atoi(res)
+				if err != nil {
+					return nil, nil, err
+				}
+				result[i] = atoi
+			}
+		}
+	}
+	return result, missedRecordIdx, nil
 }

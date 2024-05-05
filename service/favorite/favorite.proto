@@ -39,7 +39,19 @@ service Favorite {
   rpc GetFavoriteCount(GetFavoriteCountRequest) returns(GetFavoriteCountResponse);
   rpc IsFavorite(IsFavoriteRequest) returns(IsFavoriteResponse);
   rpc IsFavoriteBatch(IsFavoriteBatchRequest) returns(IsFavoriteBatchResponse);
+  rpc GetFavoriteCountBatch(GetFavoriteCountBatchRequest) returns(GetFavoriteCountBatchResponse);
 }
+
+
+message GetFavoriteCountBatchRequest{
+  repeated uint64 videoIdList = 1;
+
+}
+
+message GetFavoriteCountBatchResponse{
+  repeated uint64 count = 1;
+}
+
 message IsFavoriteBatchRequest{
   repeated uint64 isFavoriteList = 1;
   uint64 userId = 2;

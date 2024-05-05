@@ -10,7 +10,7 @@ type Comment struct {
 	UserId  uint
 	VideoId uint
 	Content string
-	User    User `json:"author" gorm:"foreignKey:UserId"`
+	User    User `json:"author" customgorm:"foreignKey:UserId"`
 }
 
 func (Comment) TableName() string {

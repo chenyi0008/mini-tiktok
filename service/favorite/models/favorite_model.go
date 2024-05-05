@@ -1,6 +1,11 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+	"gorm.io/gorm"
+	"mini-tiktok/service/core/models"
+	"mini-tiktok/utils"
+)
 
 type Favorite struct {
 	UserId  uint `json:"userId"`
@@ -43,6 +48,23 @@ func (m *DefaultFavoriteModel) CountByVideoId(videoId uint) (int, error) {
 	var count int64
 	err := m.Db.Model(&Favorite{}).Where("video_id = ?", videoId).Count(&count).Error
 	return int(count), err
+}
+
+func (m *DefaultFavoriteModel) GetVideoFavoriteCountBatch(videoId []int) ([]int, error) {
+	length := len(videoId)
+	count := make([]int, length)
+	videoList := make([]models.Video, length)
+	orderBy := utils.BuildSQLStringForIDs(videoId)
+	err := m.Db.Model(&models.VideoModel{}).Select("id, favorite_count").Clauses(orderBy).Where("id in ?", videoId).Find(&videoList).Error
+	fmt.Println()
+	for _, video := range videoList {
+		fmt.Println(video)
+	}
+	fmt.Println()
+	for i := 0; i < length; i++ {
+		count[i] = int(videoList[i].FavoriteCount)
+	}
+	return count, err
 }
 
 func (m *DefaultFavoriteModel) IsFavor(videoId, userId uint) (bool, error) {

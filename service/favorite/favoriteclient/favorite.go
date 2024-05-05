@@ -13,25 +13,27 @@ import (
 )
 
 type (
-	CancelLikeRequest        = favorite.CancelLikeRequest
-	CommentList              = favorite.CommentList
-	GetCommentCountRequest   = favorite.GetCommentCountRequest
-	GetCommentCountResponse  = favorite.GetCommentCountResponse
-	GetCommentRequest        = favorite.GetCommentRequest
-	GetCommentResponse       = favorite.GetCommentResponse
-	GetFavoriteCountRequest  = favorite.GetFavoriteCountRequest
-	GetFavoriteCountResponse = favorite.GetFavoriteCountResponse
-	GiveLikeRequest          = favorite.GiveLikeRequest
-	IsFavoriteBatchRequest   = favorite.IsFavoriteBatchRequest
-	IsFavoriteBatchResponse  = favorite.IsFavoriteBatchResponse
-	IsFavoriteRequest        = favorite.IsFavoriteRequest
-	IsFavoriteResponse       = favorite.IsFavoriteResponse
-	LikeListRequest          = favorite.LikeListRequest
-	LikeListResponse         = favorite.LikeListResponse
-	PostCommentRequest       = favorite.PostCommentRequest
-	PostCommentResponse      = favorite.PostCommentResponse
-	Response                 = favorite.Response
-	User                     = favorite.User
+	CancelLikeRequest             = favorite.CancelLikeRequest
+	CommentList                   = favorite.CommentList
+	GetCommentCountRequest        = favorite.GetCommentCountRequest
+	GetCommentCountResponse       = favorite.GetCommentCountResponse
+	GetCommentRequest             = favorite.GetCommentRequest
+	GetCommentResponse            = favorite.GetCommentResponse
+	GetFavoriteCountBatchRequest  = favorite.GetFavoriteCountBatchRequest
+	GetFavoriteCountBatchResponse = favorite.GetFavoriteCountBatchResponse
+	GetFavoriteCountRequest       = favorite.GetFavoriteCountRequest
+	GetFavoriteCountResponse      = favorite.GetFavoriteCountResponse
+	GiveLikeRequest               = favorite.GiveLikeRequest
+	IsFavoriteBatchRequest        = favorite.IsFavoriteBatchRequest
+	IsFavoriteBatchResponse       = favorite.IsFavoriteBatchResponse
+	IsFavoriteRequest             = favorite.IsFavoriteRequest
+	IsFavoriteResponse            = favorite.IsFavoriteResponse
+	LikeListRequest               = favorite.LikeListRequest
+	LikeListResponse              = favorite.LikeListResponse
+	PostCommentRequest            = favorite.PostCommentRequest
+	PostCommentResponse           = favorite.PostCommentResponse
+	Response                      = favorite.Response
+	User                          = favorite.User
 
 	Favorite interface {
 		GiveLike(ctx context.Context, in *GiveLikeRequest, opts ...grpc.CallOption) (*Response, error)
@@ -43,6 +45,7 @@ type (
 		GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error)
 		IsFavorite(ctx context.Context, in *IsFavoriteRequest, opts ...grpc.CallOption) (*IsFavoriteResponse, error)
 		IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error)
+		GetFavoriteCountBatch(ctx context.Context, in *GetFavoriteCountBatchRequest, opts ...grpc.CallOption) (*GetFavoriteCountBatchResponse, error)
 	}
 
 	defaultFavorite struct {
@@ -99,4 +102,9 @@ func (m *defaultFavorite) IsFavorite(ctx context.Context, in *IsFavoriteRequest,
 func (m *defaultFavorite) IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error) {
 	client := favorite.NewFavoriteClient(m.cli.Conn())
 	return client.IsFavoriteBatch(ctx, in, opts...)
+}
+
+func (m *defaultFavorite) GetFavoriteCountBatch(ctx context.Context, in *GetFavoriteCountBatchRequest, opts ...grpc.CallOption) (*GetFavoriteCountBatchResponse, error) {
+	client := favorite.NewFavoriteClient(m.cli.Conn())
+	return client.GetFavoriteCountBatch(ctx, in, opts...)
 }

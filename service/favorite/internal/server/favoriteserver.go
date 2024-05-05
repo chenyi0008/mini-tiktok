@@ -66,3 +66,8 @@ func (s *FavoriteServer) IsFavoriteBatch(ctx context.Context, in *favorite.IsFav
 	l := logic.NewIsFavoriteBatchLogic(ctx, s.svcCtx)
 	return l.IsFavoriteBatch(in)
 }
+
+func (s *FavoriteServer) GetFavoriteCountBatch(ctx context.Context, in *favorite.GetFavoriteCountBatchRequest) (*favorite.GetFavoriteCountBatchResponse, error) {
+	l := logic.NewGetFavoriteCountBatchLogic(ctx, s.svcCtx)
+	return l.GetFavoriteCountBatch(in)
+}

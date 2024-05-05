@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Favorite_GiveLike_FullMethodName         = "/favorite.Favorite/GiveLike"
-	Favorite_CancelLike_FullMethodName       = "/favorite.Favorite/CancelLike"
-	Favorite_LikeList_FullMethodName         = "/favorite.Favorite/LikeList"
-	Favorite_GetCommentList_FullMethodName   = "/favorite.Favorite/GetCommentList"
-	Favorite_PostComment_FullMethodName      = "/favorite.Favorite/PostComment"
-	Favorite_GetCommentCount_FullMethodName  = "/favorite.Favorite/GetCommentCount"
-	Favorite_GetFavoriteCount_FullMethodName = "/favorite.Favorite/GetFavoriteCount"
-	Favorite_IsFavorite_FullMethodName       = "/favorite.Favorite/IsFavorite"
-	Favorite_IsFavoriteBatch_FullMethodName  = "/favorite.Favorite/IsFavoriteBatch"
+	Favorite_GiveLike_FullMethodName              = "/favorite.Favorite/GiveLike"
+	Favorite_CancelLike_FullMethodName            = "/favorite.Favorite/CancelLike"
+	Favorite_LikeList_FullMethodName              = "/favorite.Favorite/LikeList"
+	Favorite_GetCommentList_FullMethodName        = "/favorite.Favorite/GetCommentList"
+	Favorite_PostComment_FullMethodName           = "/favorite.Favorite/PostComment"
+	Favorite_GetCommentCount_FullMethodName       = "/favorite.Favorite/GetCommentCount"
+	Favorite_GetFavoriteCount_FullMethodName      = "/favorite.Favorite/GetFavoriteCount"
+	Favorite_IsFavorite_FullMethodName            = "/favorite.Favorite/IsFavorite"
+	Favorite_IsFavoriteBatch_FullMethodName       = "/favorite.Favorite/IsFavoriteBatch"
+	Favorite_GetFavoriteCountBatch_FullMethodName = "/favorite.Favorite/GetFavoriteCountBatch"
 )
 
 // FavoriteClient is the client API for Favorite service.
@@ -43,6 +44,7 @@ type FavoriteClient interface {
 	GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error)
 	IsFavorite(ctx context.Context, in *IsFavoriteRequest, opts ...grpc.CallOption) (*IsFavoriteResponse, error)
 	IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error)
+	GetFavoriteCountBatch(ctx context.Context, in *GetFavoriteCountBatchRequest, opts ...grpc.CallOption) (*GetFavoriteCountBatchResponse, error)
 }
 
 type favoriteClient struct {
@@ -134,6 +136,15 @@ func (c *favoriteClient) IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatc
 	return out, nil
 }
 
+func (c *favoriteClient) GetFavoriteCountBatch(ctx context.Context, in *GetFavoriteCountBatchRequest, opts ...grpc.CallOption) (*GetFavoriteCountBatchResponse, error) {
+	out := new(GetFavoriteCountBatchResponse)
+	err := c.cc.Invoke(ctx, Favorite_GetFavoriteCountBatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FavoriteServer is the server API for Favorite service.
 // All implementations must embed UnimplementedFavoriteServer
 // for forward compatibility
@@ -147,6 +158,7 @@ type FavoriteServer interface {
 	GetFavoriteCount(context.Context, *GetFavoriteCountRequest) (*GetFavoriteCountResponse, error)
 	IsFavorite(context.Context, *IsFavoriteRequest) (*IsFavoriteResponse, error)
 	IsFavoriteBatch(context.Context, *IsFavoriteBatchRequest) (*IsFavoriteBatchResponse, error)
+	GetFavoriteCountBatch(context.Context, *GetFavoriteCountBatchRequest) (*GetFavoriteCountBatchResponse, error)
 	mustEmbedUnimplementedFavoriteServer()
 }
 
@@ -180,6 +192,9 @@ func (UnimplementedFavoriteServer) IsFavorite(context.Context, *IsFavoriteReques
 }
 func (UnimplementedFavoriteServer) IsFavoriteBatch(context.Context, *IsFavoriteBatchRequest) (*IsFavoriteBatchResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsFavoriteBatch not implemented")
+}
+func (UnimplementedFavoriteServer) GetFavoriteCountBatch(context.Context, *GetFavoriteCountBatchRequest) (*GetFavoriteCountBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFavoriteCountBatch not implemented")
 }
 func (UnimplementedFavoriteServer) mustEmbedUnimplementedFavoriteServer() {}
 
@@ -356,6 +371,24 @@ func _Favorite_IsFavoriteBatch_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Favorite_GetFavoriteCountBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFavoriteCountBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FavoriteServer).GetFavoriteCountBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Favorite_GetFavoriteCountBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FavoriteServer).GetFavoriteCountBatch(ctx, req.(*GetFavoriteCountBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Favorite_ServiceDesc is the grpc.ServiceDesc for Favorite service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -398,6 +431,10 @@ var Favorite_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsFavoriteBatch",
 			Handler:    _Favorite_IsFavoriteBatch_Handler,
+		},
+		{
+			MethodName: "GetFavoriteCountBatch",
+			Handler:    _Favorite_GetFavoriteCountBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

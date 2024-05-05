@@ -2,16 +2,26 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"mini-tiktok/common/customgorm"
 	"mini-tiktok/service/core/helper"
 )
 
 type VideoModel struct {
-	Author   User   `json:"author" gorm:"foreignKey:UserId"`
+	Author   user   `json:"author" gorm:"foreignKey:UserId" `
 	UserId   int64  `json:"user_id"`
 	CoverURL string `json:"cover_url"` // 视频封面地址
 	PlayURL  string `json:"play_url"`  // 视频播放地址
 	Title    string `json:"title"`     // 视频标题
-	gorm.Model
+	customgorm.CustomModel
+}
+
+type user struct {
+	ID   int64  `json:"id"`   // 用户id
+	Name string `json:"name"` // 用户名称
+}
+
+func (user) TableName() string {
+	return "tb_user"
 }
 
 func (VideoModel) TableName() string {
@@ -20,9 +30,9 @@ func (VideoModel) TableName() string {
 
 type Video struct {
 	VideoModel
-	FavoriteCount int64 `json:"favorite_count"` // 视频的点赞总数
-	IsFavorite    bool  `json:"is_favorite"`    // true-已点赞，false-未点赞
-	CommentCount  int64 `json:"comment_count"`  // 视频的评论总数
+	FavoriteCount int64 `json:"favorite_count"`       // 视频的点赞总数
+	IsFavorite    bool  `json:"is_favorite" gorm:"-"` // true-已点赞，false-未点赞
+	CommentCount  int64 `json:"comment_count"`        // 视频的评论总数
 }
 
 type DefaultVideoModel struct {

@@ -33,14 +33,19 @@ func (l *GetFavoriteCountBatchLogic) GetFavoriteCountBatch(in *favorite.GetFavor
 		for _, missIdx := range missList {
 			queryList = append(queryList, int(in.VideoIdList[missIdx]))
 		}
+		// 从mysql读数据
 		countBatch, err := l.svcCtx.FavoriteModel.GetVideoFavoriteCountBatch(queryList)
 		if err != nil {
 			return nil, err
 		}
 		for i, idx := range missList {
 			batch[idx] = countBatch[i]
+			// 把数据存到redis
+			_, err := l.svcCtx.RedisCli.SetVideoFavoriteCount(l.ctx, queryList[i], countBatch[i])
+			if err != nil {
+				return nil, err
+			}
 		}
-		//todo 未命中要加入redis中
 	}
 
 	res := make([]uint64, 0)

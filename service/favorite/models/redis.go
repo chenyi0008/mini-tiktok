@@ -139,7 +139,7 @@ func (m *DefaultRedisCliModel) GetFavoriteCountBatch(ctx context.Context, videoI
 	length := len(videoId)
 	result := make([]int, length)
 	for _, value := range videoId {
-		pipe.HGet(ctx, consts.UserFavoriteCount, string(value))
+		pipe.HGet(ctx, consts.UserFavoriteCount, strconv.FormatUint(value, 10))
 	}
 	exec, err := pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
@@ -168,4 +168,9 @@ func (m *DefaultRedisCliModel) GetFavoriteCountBatch(ctx context.Context, videoI
 		}
 	}
 	return result, missedRecordIdx, nil
+}
+
+func (m *DefaultRedisCliModel) SetVideoFavoriteCount(ctx context.Context, videoId, count int) (int64, error) {
+	result, err := m.client.HSet(ctx, consts.UserFavoriteCount, videoId, count).Result()
+	return result, err
 }

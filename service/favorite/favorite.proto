@@ -36,12 +36,19 @@ service Favorite {
   rpc GetCommentList(GetCommentRequest) returns(GetCommentResponse);
   rpc PostComment(PostCommentRequest) returns(PostCommentResponse);
   rpc GetCommentCount(GetCommentCountRequest) returns(GetCommentCountResponse);
+  rpc GetCommentCountBatch(GetCommentCountBatchRequest) returns(GetCommentCountBatchResponse);
   rpc GetFavoriteCount(GetFavoriteCountRequest) returns(GetFavoriteCountResponse);
   rpc IsFavorite(IsFavoriteRequest) returns(IsFavoriteResponse);
   rpc IsFavoriteBatch(IsFavoriteBatchRequest) returns(IsFavoriteBatchResponse);
   rpc GetFavoriteCountBatch(GetFavoriteCountBatchRequest) returns(GetFavoriteCountBatchResponse);
 }
+message GetCommentCountBatchRequest{
+  repeated uint64 videoIdList = 1;
+}
 
+message GetCommentCountBatchResponse{
+  repeated uint64 count = 1;
+}
 
 message GetFavoriteCountBatchRequest{
   repeated uint64 videoIdList = 1;

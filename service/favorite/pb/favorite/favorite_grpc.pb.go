@@ -25,6 +25,7 @@ const (
 	Favorite_GetCommentList_FullMethodName        = "/favorite.Favorite/GetCommentList"
 	Favorite_PostComment_FullMethodName           = "/favorite.Favorite/PostComment"
 	Favorite_GetCommentCount_FullMethodName       = "/favorite.Favorite/GetCommentCount"
+	Favorite_GetCommentCountBatch_FullMethodName  = "/favorite.Favorite/GetCommentCountBatch"
 	Favorite_GetFavoriteCount_FullMethodName      = "/favorite.Favorite/GetFavoriteCount"
 	Favorite_IsFavorite_FullMethodName            = "/favorite.Favorite/IsFavorite"
 	Favorite_IsFavoriteBatch_FullMethodName       = "/favorite.Favorite/IsFavoriteBatch"
@@ -41,6 +42,7 @@ type FavoriteClient interface {
 	GetCommentList(ctx context.Context, in *GetCommentRequest, opts ...grpc.CallOption) (*GetCommentResponse, error)
 	PostComment(ctx context.Context, in *PostCommentRequest, opts ...grpc.CallOption) (*PostCommentResponse, error)
 	GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error)
+	GetCommentCountBatch(ctx context.Context, in *GetCommentCountBatchRequest, opts ...grpc.CallOption) (*GetCommentCountBatchResponse, error)
 	GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error)
 	IsFavorite(ctx context.Context, in *IsFavoriteRequest, opts ...grpc.CallOption) (*IsFavoriteResponse, error)
 	IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error)
@@ -109,6 +111,15 @@ func (c *favoriteClient) GetCommentCount(ctx context.Context, in *GetCommentCoun
 	return out, nil
 }
 
+func (c *favoriteClient) GetCommentCountBatch(ctx context.Context, in *GetCommentCountBatchRequest, opts ...grpc.CallOption) (*GetCommentCountBatchResponse, error) {
+	out := new(GetCommentCountBatchResponse)
+	err := c.cc.Invoke(ctx, Favorite_GetCommentCountBatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *favoriteClient) GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error) {
 	out := new(GetFavoriteCountResponse)
 	err := c.cc.Invoke(ctx, Favorite_GetFavoriteCount_FullMethodName, in, out, opts...)
@@ -155,6 +166,7 @@ type FavoriteServer interface {
 	GetCommentList(context.Context, *GetCommentRequest) (*GetCommentResponse, error)
 	PostComment(context.Context, *PostCommentRequest) (*PostCommentResponse, error)
 	GetCommentCount(context.Context, *GetCommentCountRequest) (*GetCommentCountResponse, error)
+	GetCommentCountBatch(context.Context, *GetCommentCountBatchRequest) (*GetCommentCountBatchResponse, error)
 	GetFavoriteCount(context.Context, *GetFavoriteCountRequest) (*GetFavoriteCountResponse, error)
 	IsFavorite(context.Context, *IsFavoriteRequest) (*IsFavoriteResponse, error)
 	IsFavoriteBatch(context.Context, *IsFavoriteBatchRequest) (*IsFavoriteBatchResponse, error)
@@ -183,6 +195,9 @@ func (UnimplementedFavoriteServer) PostComment(context.Context, *PostCommentRequ
 }
 func (UnimplementedFavoriteServer) GetCommentCount(context.Context, *GetCommentCountRequest) (*GetCommentCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCommentCount not implemented")
+}
+func (UnimplementedFavoriteServer) GetCommentCountBatch(context.Context, *GetCommentCountBatchRequest) (*GetCommentCountBatchResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCommentCountBatch not implemented")
 }
 func (UnimplementedFavoriteServer) GetFavoriteCount(context.Context, *GetFavoriteCountRequest) (*GetFavoriteCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFavoriteCount not implemented")
@@ -317,6 +332,24 @@ func _Favorite_GetCommentCount_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Favorite_GetCommentCountBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCommentCountBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FavoriteServer).GetCommentCountBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Favorite_GetCommentCountBatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FavoriteServer).GetCommentCountBatch(ctx, req.(*GetCommentCountBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Favorite_GetFavoriteCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetFavoriteCountRequest)
 	if err := dec(in); err != nil {
@@ -419,6 +452,10 @@ var Favorite_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetCommentCount",
 			Handler:    _Favorite_GetCommentCount_Handler,
+		},
+		{
+			MethodName: "GetCommentCountBatch",
+			Handler:    _Favorite_GetCommentCountBatch_Handler,
 		},
 		{
 			MethodName: "GetFavoriteCount",

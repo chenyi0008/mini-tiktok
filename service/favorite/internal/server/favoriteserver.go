@@ -52,6 +52,11 @@ func (s *FavoriteServer) GetCommentCount(ctx context.Context, in *favorite.GetCo
 	return l.GetCommentCount(in)
 }
 
+func (s *FavoriteServer) GetCommentCountBatch(ctx context.Context, in *favorite.GetCommentCountBatchRequest) (*favorite.GetCommentCountBatchResponse, error) {
+	l := logic.NewGetCommentCountBatchLogic(ctx, s.svcCtx)
+	return l.GetCommentCountBatch(in)
+}
+
 func (s *FavoriteServer) GetFavoriteCount(ctx context.Context, in *favorite.GetFavoriteCountRequest) (*favorite.GetFavoriteCountResponse, error) {
 	l := logic.NewGetFavoriteCountLogic(ctx, s.svcCtx)
 	return l.GetFavoriteCount(in)

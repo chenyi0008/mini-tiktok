@@ -15,6 +15,8 @@ import (
 type (
 	CancelLikeRequest             = favorite.CancelLikeRequest
 	CommentList                   = favorite.CommentList
+	GetCommentCountBatchRequest   = favorite.GetCommentCountBatchRequest
+	GetCommentCountBatchResponse  = favorite.GetCommentCountBatchResponse
 	GetCommentCountRequest        = favorite.GetCommentCountRequest
 	GetCommentCountResponse       = favorite.GetCommentCountResponse
 	GetCommentRequest             = favorite.GetCommentRequest
@@ -42,6 +44,7 @@ type (
 		GetCommentList(ctx context.Context, in *GetCommentRequest, opts ...grpc.CallOption) (*GetCommentResponse, error)
 		PostComment(ctx context.Context, in *PostCommentRequest, opts ...grpc.CallOption) (*PostCommentResponse, error)
 		GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error)
+		GetCommentCountBatch(ctx context.Context, in *GetCommentCountBatchRequest, opts ...grpc.CallOption) (*GetCommentCountBatchResponse, error)
 		GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error)
 		IsFavorite(ctx context.Context, in *IsFavoriteRequest, opts ...grpc.CallOption) (*IsFavoriteResponse, error)
 		IsFavoriteBatch(ctx context.Context, in *IsFavoriteBatchRequest, opts ...grpc.CallOption) (*IsFavoriteBatchResponse, error)
@@ -87,6 +90,11 @@ func (m *defaultFavorite) PostComment(ctx context.Context, in *PostCommentReques
 func (m *defaultFavorite) GetCommentCount(ctx context.Context, in *GetCommentCountRequest, opts ...grpc.CallOption) (*GetCommentCountResponse, error) {
 	client := favorite.NewFavoriteClient(m.cli.Conn())
 	return client.GetCommentCount(ctx, in, opts...)
+}
+
+func (m *defaultFavorite) GetCommentCountBatch(ctx context.Context, in *GetCommentCountBatchRequest, opts ...grpc.CallOption) (*GetCommentCountBatchResponse, error) {
+	client := favorite.NewFavoriteClient(m.cli.Conn())
+	return client.GetCommentCountBatch(ctx, in, opts...)
 }
 
 func (m *defaultFavorite) GetFavoriteCount(ctx context.Context, in *GetFavoriteCountRequest, opts ...grpc.CallOption) (*GetFavoriteCountResponse, error) {

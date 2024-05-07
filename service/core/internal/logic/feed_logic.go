@@ -132,14 +132,18 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		}
 	}
 
-	batch, err := l.svcCtx.FavoriteRpc.GetFavoriteCountBatch(l.ctx, &favorite.GetFavoriteCountBatchRequest{
+	favoriteBatch, err := l.svcCtx.FavoriteRpc.GetFavoriteCountBatch(l.ctx, &favorite.GetFavoriteCountBatchRequest{
+		VideoIdList: idList,
+	})
+	countBatch, err := l.svcCtx.FavoriteRpc.GetCommentCountBatch(l.ctx, &favorite.GetCommentCountBatchRequest{
 		VideoIdList: idList,
 	})
 	if err != nil {
 		l.Logger.Error(err)
 	}
 	for i := 0; i < len(resp.VideoList); i++ {
-		resp.VideoList[i].CommentCount = int(batch.Count[i])
+		resp.VideoList[i].FavoriteCount = int64(favoriteBatch.Count[i])
+		resp.VideoList[i].CommentCount = int(countBatch.Count[i])
 	}
 	//	if err != nil {
 	//		logx.Error(err)

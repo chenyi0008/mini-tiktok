@@ -139,7 +139,7 @@ func (m *DefaultRedisCliModel) GetFavoriteCountBatch(ctx context.Context, videoI
 	length := len(videoId)
 	result := make([]int, length)
 	for _, value := range videoId {
-		pipe.HGet(ctx, consts.UserFavoriteCount, strconv.FormatUint(value, 10))
+		pipe.HGet(ctx, consts.VideoFavoriteCount, strconv.FormatUint(value, 10))
 	}
 	exec, err := pipe.Exec(ctx)
 	if err != nil && err != redis.Nil {
@@ -171,6 +171,49 @@ func (m *DefaultRedisCliModel) GetFavoriteCountBatch(ctx context.Context, videoI
 }
 
 func (m *DefaultRedisCliModel) SetVideoFavoriteCount(ctx context.Context, videoId, count int) (int64, error) {
-	result, err := m.client.HSet(ctx, consts.UserFavoriteCount, videoId, count).Result()
+	result, err := m.client.HSet(ctx, consts.VideoFavoriteCount, videoId, count).Result()
+	return result, err
+}
+
+// GetCommentCountBatch 批量获取评论数量
+func (m *DefaultRedisCliModel) GetCommentCountBatch(ctx context.Context, videoId []uint64) ([]int, []int, error) {
+	missedRecordIdx := make([]int, 0)
+	pipe := m.client.Pipeline()
+	length := len(videoId)
+	result := make([]int, length)
+	for _, value := range videoId {
+		pipe.HGet(ctx, consts.VideoCommentCount, strconv.FormatUint(value, 10))
+	}
+	exec, err := pipe.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return nil, nil, err
+	}
+	// 获取每个命令的结果
+	for i, cmder := range exec {
+		cmd, ok := cmder.(*redis.StringCmd)
+		if ok {
+			res, err := cmd.Result()
+			if err != nil && err != redis.Nil {
+				panic(err)
+				fmt.Println(reflect.TypeOf(err))
+				return nil, nil, err
+			}
+			if err == redis.Nil {
+				missedRecordIdx = append(missedRecordIdx, i)
+				result[i] = -1
+			} else {
+				atoi, err := strconv.Atoi(res)
+				if err != nil {
+					return nil, nil, err
+				}
+				result[i] = atoi
+			}
+		}
+	}
+	return result, missedRecordIdx, nil
+}
+
+func (m *DefaultRedisCliModel) SetVideoCommentCount(ctx context.Context, videoId, count int) (int64, error) {
+	result, err := m.client.HSet(ctx, consts.VideoCommentCount, videoId, count).Result()
 	return result, err
 }

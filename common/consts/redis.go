@@ -10,7 +10,7 @@ const (
 	VideoSortSet       = "video_sort_set"
 	UserVideo          = "user_video:"
 	UserFavorite       = "user_favorite:"
-	VideoFavoriteCount = "count:video_favorite_count"
+	VideoFavoriteCount = "video_count:video_favorite_count"
 	VideoComment       = "video_comment:"
-	VideoCommentCount  = "count:video_comment_count"
+	VideoCommentCount  = "video_count:video_comment_count"
 )

@@ -33,7 +33,6 @@ func (m *RedisCliModel) ZRangeByScore(ctx context.Context, timestamp uint) ([]re
 		Count:   int64(define.N),
 	})
 	result, err := scores.Result()
-	fmt.Println(scores.String())
 	if err != nil {
 		return nil, err
 	}
@@ -88,4 +87,37 @@ func (m *RedisCliModel) GetVideoInfo(ctx context.Context, id int) (*VideoModel, 
 		return nil, err
 	}
 	return video, err
+}
+
+func (m *RedisCliModel) GetVideoInfoBatch(ctx context.Context, ids []int) ([]*VideoModel, error) {
+	pipeline := m.client.Pipeline()
+	for _, id := range ids {
+		key := fmt.Sprintf("%s%d", consts.VideoInfo, id)
+		pipeline.Get(ctx, key)
+	}
+	exec, err := pipeline.Exec(ctx)
+	if err != nil && err != redis.Nil {
+		return nil, errors.Errorf("err: %s  redis feedback: %s", err.Error())
+	}
+	videoList := make([]*VideoModel, 0)
+	for _, cmder := range exec {
+		cmd := cmder.(*redis.StringCmd)
+		result, err := cmd.Result()
+		if err != nil && err != redis.Nil {
+			return nil, errors.Errorf("err: %s  redis feedback: %s", err.Error())
+		}
+		var video *VideoModel
+		if err == redis.Nil {
+			video = nil
+		} else {
+			video = &VideoModel{}
+			err = json.Unmarshal([]byte(result), video)
+			if err != nil {
+				return nil, err
+			}
+		}
+		videoList = append(videoList, video)
+
+	}
+	return videoList, err
 }

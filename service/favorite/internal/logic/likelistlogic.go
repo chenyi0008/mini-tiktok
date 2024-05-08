@@ -24,6 +24,7 @@ func NewLikeListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeList
 }
 
 func (l *LikeListLogic) LikeList(in *favorite.LikeListRequest) (*favorite.LikeListResponse, error) {
+
 	list, err := l.svcCtx.FavoriteModel.GetByUserId(in.UserId)
 
 	resp := new(favorite.LikeListResponse)

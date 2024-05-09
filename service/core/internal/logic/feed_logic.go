@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
+	"mini-tiktok/service/core/models"
 	"mini-tiktok/service/favorite/pb/favorite"
 	"strconv"
 	"time"
@@ -39,14 +40,12 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 	if req.LatestTime == 0 {
 		req.LatestTime = uint(time.Now().Unix())
 	}
-	caculateTime(0)
-	caculateTime(1)
+	// 从redis取缓存
 	scoreArr, err := l.svcCtx.RedisCli.ZRangeByScore(l.ctx, req.LatestTime)
 	if err != nil {
 		logx.Error(err)
 		return
 	}
-	caculateTime(2)
 	// redis没有缓存 从mysql读取
 	length := len(scoreArr)
 	if length == 0 {
@@ -68,55 +67,87 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 			return
 		}
 	}
-	caculateTime(3)
+
 	idList := make([]int, length)
+	idUintList := make([]uint64, length)
 	for i, item := range scoreArr {
 		num, err := strconv.Atoi(item.Member.(string))
 		if err != nil {
 			logx.Error(err)
 		}
 		idList[i] = num
+		idUintList[i] = uint64(num)
 	}
-	caculateTime(4)
-	batch, err := l.svcCtx.RedisCli.GetVideoInfoBatch(l.ctx, idList)
-	caculateTime(44)
-	for i, video := range batch {
-		if video == nil {
 
-			batch[i], err = l.svcCtx.VideoModel.FindOneById(idList[i])
-			if err != nil {
-				logx.Error(err)
-			}
-			err := l.svcCtx.RedisCli.SetVideoInfo(l.ctx, batch[i])
-			if err != nil {
-				logx.Error(err)
+	videoInfoChan := make(chan *[]*models.VideoModel)
+	favoriteCountChan := make(chan *favorite.GetFavoriteCountBatchResponse)
+	commentCountChan := make(chan *favorite.GetCommentCountBatchResponse)
+	userFavoriteChan := make(chan *favorite.IsFavoriteBatchResponse)
+
+	// 视频信息
+	go func() {
+		batch, err := l.svcCtx.RedisCli.GetVideoInfoBatch(l.ctx, idList)
+		for i, video := range batch {
+			if video == nil {
+
+				batch[i], err = l.svcCtx.VideoModel.FindOneById(idList[i])
+				if err != nil {
+					logx.Error(err)
+				}
+				err := l.svcCtx.RedisCli.SetVideoInfo(l.ctx, batch[i])
+				if err != nil {
+					logx.Error(err)
+				}
 			}
 		}
-	}
-	caculateTime(5)
-	idUintList := make([]uint64, length)
-	for i, item := range idList {
-		idUintList[i] = uint64(item)
-	}
-	fmt.Println("idlist:", idUintList)
-	favoriteBatch, err := l.svcCtx.FavoriteRpc.GetFavoriteCountBatch(l.ctx, &favorite.GetFavoriteCountBatchRequest{
-		VideoIdList: idUintList,
-	})
-	if err != nil {
-		l.Logger.Error(err)
-		return
-	}
-	caculateTime(6)
-	countBatch, err := l.svcCtx.FavoriteRpc.GetCommentCountBatch(l.ctx, &favorite.GetCommentCountBatchRequest{
-		VideoIdList: idUintList,
-	})
-	if err != nil {
-		l.Logger.Error(err)
-		return
-	}
-	caculateTime(7)
+		videoInfoChan <- &batch
+	}()
 
-	for i, item := range batch {
+	// 点赞数量
+	go func() {
+		favoriteBatch, err := l.svcCtx.FavoriteRpc.GetFavoriteCountBatch(l.ctx, &favorite.GetFavoriteCountBatchRequest{
+			VideoIdList: idUintList,
+		})
+		if err != nil {
+			l.Logger.Error(err)
+			favoriteCountChan <- nil
+			return
+		}
+		favoriteCountChan <- favoriteBatch
+	}()
+
+	// 评论数量
+	go func() {
+		countBatch, err := l.svcCtx.FavoriteRpc.GetCommentCountBatch(l.ctx, &favorite.GetCommentCountBatchRequest{
+			VideoIdList: idUintList,
+		})
+		if err != nil {
+			l.Logger.Error(err)
+			commentCountChan <- nil
+			return
+		}
+		commentCountChan <- countBatch
+	}()
+
+	// 是否点赞
+	if req.UserId != 0 {
+		go func() {
+			batch, err := l.svcCtx.FavoriteRpc.IsFavoriteBatch(l.ctx, &favorite.IsFavoriteBatchRequest{
+				IsFavoriteList: idUintList,
+				UserId:         uint64(req.UserId),
+			})
+			if err != nil {
+				l.Logger.Error(err)
+			}
+			userFavoriteChan <- batch
+		}()
+	}
+
+	videoInfoBatch := <-videoInfoChan
+	favoriteBatch := <-favoriteCountChan
+	countBatch := <-commentCountChan
+
+	for i, item := range *videoInfoBatch {
 		videoRes := types.VideoListRes{
 			ID: int(item.ID),
 			Author: types.AuthorRes{
@@ -128,22 +159,14 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 			CommentCount:  int(countBatch.Count[i]),
 			FavoriteCount: int64(favoriteBatch.Count[i]),
 		}
-
 		resp.VideoList = append(resp.VideoList, videoRes)
 	}
-	caculateTime(8)
+
 	if req.UserId != 0 {
-		batch, err := l.svcCtx.FavoriteRpc.IsFavoriteBatch(l.ctx, &favorite.IsFavoriteBatchRequest{
-			IsFavoriteList: idUintList,
-			UserId:         uint64(req.UserId),
-		})
-		if err != nil {
-			l.Logger.Error(err)
-		}
+		batch := <-userFavoriteChan
 		for i := 0; i < len(resp.VideoList); i++ {
 			resp.VideoList[i].IsFavorite = batch.IsFavorite[i]
 		}
 	}
-	caculateTime(9)
 	return
 }

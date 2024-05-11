@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"mini-tiktok/service/core/corn"
 	"mini-tiktok/service/core/internal/config"
 	"mini-tiktok/service/core/internal/handler"
 	"mini-tiktok/service/core/internal/svc"
@@ -28,6 +29,8 @@ func main() {
 
 	ctx := svc.NewServiceContext(c)
 	handler.RegisterHandlers(server, ctx)
+
+	go corn.CornInit(ctx)
 
 	fmt.Printf("Starting server at %s:%d...\n", c.Host, c.Port)
 	server.Start()

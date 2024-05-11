@@ -3,6 +3,7 @@ package models
 import (
 	"context"
 	"fmt"
+	"github.com/go-errors/errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
 	"mini-tiktok/common/consts"
@@ -175,6 +176,20 @@ func (m *DefaultRedisCliModel) SetVideoFavoriteCount(ctx context.Context, videoI
 	return result, err
 }
 
+// IncrVideoFavoriteCount 视频点赞数量自增
+func (m *DefaultRedisCliModel) IncrVideoFavoriteCount(ctx context.Context, videoId uint64) (int64, error) {
+	id := strconv.Itoa(int(videoId))
+	result, err := m.client.HIncrBy(ctx, consts.VideoFavoriteCount, id, 1).Result()
+	return result, err
+}
+
+// DecVideoFavoriteCount 视频点赞数量自减
+func (m *DefaultRedisCliModel) DecVideoFavoriteCount(ctx context.Context, videoId uint64) (int64, error) {
+	id := strconv.Itoa(int(videoId))
+	result, err := m.client.HIncrBy(ctx, consts.VideoFavoriteCount, id, -1).Result()
+	return result, err
+}
+
 // GetCommentCountBatch 批量获取评论数量
 func (m *DefaultRedisCliModel) GetCommentCountBatch(ctx context.Context, videoId []uint64) ([]int, []int, error) {
 	missedRecordIdx := make([]int, 0)
@@ -216,4 +231,54 @@ func (m *DefaultRedisCliModel) GetCommentCountBatch(ctx context.Context, videoId
 func (m *DefaultRedisCliModel) SetVideoCommentCount(ctx context.Context, videoId, count int) (int64, error) {
 	result, err := m.client.HSet(ctx, consts.VideoCommentCount, videoId, count).Result()
 	return result, err
+}
+
+// GetVideoFavoriteCountTag 获取点赞的tag
+func (m *DefaultRedisCliModel) GetVideoFavoriteCountTag(ctx context.Context) ([]string, error) {
+	set, err := m.client.SMembers(ctx, consts.VideoFavoriteCountTag).Result()
+	list := make([]string, 0)
+	if err != nil && err != redis.Nil {
+		return nil, errors.Errorf("err: %s  redis feedback: %s", err.Error())
+	} else if err == redis.Nil {
+		return list, nil
+	}
+	for _, item := range set {
+		list = append(list, item)
+	}
+	return list, err
+}
+
+// SetVideoFavoriteCountTag 设置点赞数量的tag
+func (m *DefaultRedisCliModel) SetVideoFavoriteCountTag(ctx context.Context, id uint64) error {
+	_, err := m.client.SAdd(ctx, consts.VideoFavoriteCountTag, id).Result()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetVideoFavorTag 设置点赞关系的tag
+func (m *DefaultRedisCliModel) SetVideoFavorTag(ctx context.Context, videoId, userId uint64) error {
+	key := fmt.Sprintf("%s%s", consts.VideoFavorTag, videoId)
+	_, err := m.client.SAdd(ctx, key, userId).Result()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetVideoFavorCountTag 获取点赞关系的tag
+func (m *DefaultRedisCliModel) GetVideoFavorCountTag(ctx context.Context, videoId int) ([]string, error) {
+	key := fmt.Sprintf("%s%d", consts.VideoFavorTag, videoId)
+	set, err := m.client.SMembers(ctx, key).Result()
+	list := make([]string, 0)
+	if err != nil && err != redis.Nil {
+		return nil, errors.Errorf("err: %s  redis feedback: %s", err.Error())
+	} else if err == redis.Nil {
+		return list, nil
+	}
+	for _, item := range set {
+		list = append(list, item)
+	}
+	return list, err
 }

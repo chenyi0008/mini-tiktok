@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"mini-tiktok/common/consts"
 	"mini-tiktok/service/favorite/pb/favorite"
 
 	"mini-tiktok/service/core/internal/svc"
@@ -27,8 +28,7 @@ func NewLikeLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeLogic {
 func (l *LikeLogic) Like(req *types.LikeRequest) (resp *types.BaseResponse, err error) {
 	resp = new(types.BaseResponse)
 	var response *favorite.Response
-	logx.Info(req)
-	if req.ActionType == 1 {
+	if req.ActionType == consts.GIVE_LIKE {
 		response, err = l.svcCtx.FavoriteRpc.GiveLike(l.ctx, &favorite.GiveLikeRequest{
 			UserId:  uint64(req.UserId),
 			VideoId: uint64(req.VideoId),

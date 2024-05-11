@@ -26,7 +26,6 @@ func NewGetFriendLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetFrie
 }
 
 func (l *GetFriendLogic) GetFriend(req *types.GetFriendRequest) (resp *types.GetFriendResponse, err error) {
-	// todo: add your logic here and delete this line
 	resp = new(types.GetFriendResponse)
 	result, err := l.svcCtx.FollowRpc.GetFriendList(l.ctx, &follow.GetFriendListRequest{
 		UserId: uint64(req.UserId),

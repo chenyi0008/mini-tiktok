@@ -46,6 +46,7 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		logx.Error(err)
 		return
 	}
+
 	// redis没有缓存 从mysql读取
 	length := len(scoreArr)
 	if length == 0 {
@@ -78,6 +79,7 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 		idList[i] = num
 		idUintList[i] = uint64(num)
 	}
+	l.Logger.Info(idList)
 
 	videoInfoChan := make(chan *[]*models.VideoModel)
 	favoriteCountChan := make(chan *favorite.GetFavoriteCountBatchResponse)
@@ -113,6 +115,7 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 			favoriteCountChan <- nil
 			return
 		}
+		l.Logger.Info(favoriteBatch)
 		favoriteCountChan <- favoriteBatch
 	}()
 

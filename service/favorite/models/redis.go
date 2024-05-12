@@ -118,8 +118,8 @@ func (m *DefaultRedisCliModel) CancelFavor(ctx context.Context, videoId, userId 
 
 // GetIsFavorite 获取是否点赞信息
 func (m *DefaultRedisCliModel) GetIsFavorite(ctx context.Context, videoId, userId uint64) (bool, error) {
-	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, videoId)
-	exists, err := m.client.SIsMember(ctx, setKey, userId).Result()
+	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, userId)
+	exists, err := m.client.SIsMember(ctx, setKey, videoId).Result()
 	if err != nil {
 		return false, err
 	}

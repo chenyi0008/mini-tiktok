@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"fmt"
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
 	"mini-tiktok/service/core/models"
@@ -25,14 +24,6 @@ func NewFeedLogic(ctx context.Context, svcCtx *svc.ServiceContext) *FeedLogic {
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
-}
-
-var t = time.Now()
-
-func caculateTime(s int) {
-	t2 := time.Now()
-	fmt.Println(s, ":", t2.Sub(t).Milliseconds())
-	t = time.Now()
 }
 
 func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err error) {
@@ -89,6 +80,7 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 	// 视频信息
 	go func() {
 		batch, err := l.svcCtx.RedisCli.GetVideoInfoBatch(l.ctx, idList)
+		// todo mapreduce优化
 		for i, video := range batch {
 			if video == nil {
 

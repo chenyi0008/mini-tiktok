@@ -1,7 +1,9 @@
 package models
 
 import (
+	"github.com/zeromicro/go-zero/core/logx"
 	"gorm.io/gorm"
+	"mini-tiktok/common/consts"
 	"mini-tiktok/common/customgorm"
 	"mini-tiktok/service/core/helper"
 )
@@ -90,4 +92,52 @@ func (m *DefaultVideoModel) FindOneById(id int) (*VideoModel, error) {
 	video := &VideoModel{}
 	err := m.Db.Preload("Author").Where("id = ?", id).Find(&video).Error
 	return video, err
+}
+
+// AggregateVideoFavorCount 聚合查询视频视频点赞数量
+func (m *DefaultVideoModel) AggregateVideoFavorCount() (*map[uint]int, error) {
+	// 查询每个视频有多少个不同的用户ID关联
+	var videoFavorCounts []struct {
+		VideoID   uint
+		UserCount int
+	}
+	err := m.Db.Table(consts.FAVORITE).
+		Select("video_id, COUNT(user_id) as user_count").
+		Group("video_id").
+		Scan(&videoFavorCounts).Error
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	// 将结果存储到map中
+	videoFavorCountMap := make(map[uint]int)
+	for _, item := range videoFavorCounts {
+		videoFavorCountMap[item.VideoID] = item.UserCount
+	}
+	return &videoFavorCountMap, nil
+}
+
+// AggregateVideoCommentCount 聚合查询视频评论数量
+func (m *DefaultVideoModel) AggregateVideoCommentCount() (*map[uint]int, error) {
+
+	var videoCommentCounts []struct {
+		VideoID   uint
+		UserCount int
+	}
+	err := m.Db.Table(consts.COMMENT).
+		Select("video_id, COUNT(user_id) as user_count").
+		Group("video_id").
+		Scan(&videoCommentCounts).Error
+	if err != nil {
+		logx.Error(err)
+		return nil, err
+	}
+
+	// 将结果存储到map中
+	videoFavorCountMap := make(map[uint]int)
+	for _, item := range videoCommentCounts {
+		videoFavorCountMap[item.VideoID] = item.UserCount
+	}
+	return &videoFavorCountMap, nil
 }

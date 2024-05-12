@@ -35,6 +35,11 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 	}
 
 	length := len(result.VideoId)
+
+	if length == 0 {
+		return
+	}
+
 	idList := make([]int, length)
 	idUintList := make([]uint64, length)
 	for i, id := range result.VideoId {
@@ -120,6 +125,11 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 	videoInfoBatch := <-videoInfoChan
 	favoriteBatch := <-favoriteCountChan
 	countBatch := <-commentCountChan
+
+	logx.Info(idList)
+	logx.Info(videoInfoBatch)
+	logx.Info(favoriteBatch)
+	logx.Info(countBatch)
 
 	for i, item := range *videoInfoBatch {
 		videoRes := types.VideoListRes{

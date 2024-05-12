@@ -27,8 +27,8 @@ type (
 func (m *RedisCliModel) ZRangeByScore(ctx context.Context, timestamp uint) ([]redis.Z, error) {
 	scores := m.client.ZRangeArgsWithScores(ctx, redis.ZRangeArgs{
 		Key:     consts.VideoSortSet,
-		Start:   timestamp,
-		Stop:    "+inf",
+		Start:   "-inf",
+		Stop:    timestamp,
 		ByScore: true,
 		Count:   int64(define.N),
 	})

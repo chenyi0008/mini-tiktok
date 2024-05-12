@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"github.com/jinzhu/copier"
+	"mini-tiktok/common/consts"
 	"mini-tiktok/service/favorite/pb/favorite"
 
 	"mini-tiktok/service/core/internal/svc"
@@ -33,10 +34,17 @@ func (l *GetLikeListLogic) GetLikeList(req *types.GetLikeListRequest) (resp *typ
 	if err != nil {
 		return
 	}
+
+	arr := make([]int, 0)
+	for _, id := range result.VideoId {
+		arr = append(arr, int(id))
+	}
+
 	resp.StatusMsg = result.Message
-	if result.Code == 1 {
+	if result.Code == consts.SUCCEED {
 		return
 	} else {
+		//batch, err := l.svcCtx.RedisCli.GetVideoInfoBatch(l.ctx, arr)
 		list, err2 := l.svcCtx.VideoModel.ListInIds(result.VideoId)
 		if err2 != nil {
 			return nil, err2

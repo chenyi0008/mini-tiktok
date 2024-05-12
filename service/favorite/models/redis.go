@@ -73,15 +73,50 @@ func (m *DefaultRedisCliModel) NumOfFavor(ctx context.Context, videoId uint64) (
 	return int(result), nil
 }
 func (m *DefaultRedisCliModel) SetFavor(ctx context.Context, videoId, userId uint64) (int, error) {
-	result, err := m.client.SAdd(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, videoId), userId).Result()
+	result, err := m.client.SAdd(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, userId), videoId).Result()
 	return int(result), err
 }
 
+// GetFavorSet 获取用户关注的
+func (m *DefaultRedisCliModel) GetFavorSet(ctx context.Context, userId uint64) ([]uint64, error) {
+	res := make([]uint64, 0)
+	strArr, err := m.client.SMembers(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, userId)).Result()
+	if err != nil {
+		return res, err
+	}
+	for _, s := range strArr {
+		atoi, err := strconv.ParseUint(s, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, atoi)
+	}
+	return res, err
+}
+
+// AddFavorSet 添加用户关注的
+func (m *DefaultRedisCliModel) AddFavorSet(ctx context.Context, userId uint64, videoList []uint64) error {
+	// 构造命令参数
+	args := make([]interface{}, len(videoList))
+	for i, videoID := range videoList {
+		args[i] = videoID
+	}
+
+	// 执行批量添加命令
+	_, err := m.client.SAdd(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, userId), args...).Result()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CancelFavor 取消点赞
 func (m *DefaultRedisCliModel) CancelFavor(ctx context.Context, videoId, userId uint64) (int, error) {
-	result, err := m.client.SRem(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, videoId), userId).Result()
+	result, err := m.client.SRem(ctx, fmt.Sprintf("%s%d", consts.VideoFavor, userId), videoId).Result()
 	return int(result), err
 }
 
+// GetIsFavorite 获取是否点赞信息
 func (m *DefaultRedisCliModel) GetIsFavorite(ctx context.Context, videoId, userId uint64) (bool, error) {
 	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, videoId)
 	exists, err := m.client.SIsMember(ctx, setKey, userId).Result()
@@ -96,14 +131,14 @@ func (m *DefaultRedisCliModel) GetIsFavorite(ctx context.Context, videoId, userI
 	}
 }
 
-// GetIsFavoriteBatch 批量获取点赞信息
+// GetIsFavoriteBatch 批量获取是否点赞信息
 func (m *DefaultRedisCliModel) GetIsFavoriteBatch(ctx context.Context, videoId []uint64, userId uint64) ([]bool, error) {
 	pipe := m.client.Pipeline()
 	length := len(videoId)
 	result := make([]bool, length)
 	for _, value := range videoId {
-		key := fmt.Sprintf("%s%d", consts.VideoFavor, value)
-		pipe.SIsMember(ctx, key, userId)
+		key := fmt.Sprintf("%s%d", consts.VideoFavor, userId)
+		pipe.SIsMember(ctx, key, value)
 	}
 	exec, err := pipe.Exec(ctx)
 	if err != nil {
@@ -112,11 +147,11 @@ func (m *DefaultRedisCliModel) GetIsFavoriteBatch(ctx context.Context, videoId [
 
 	// 获取每个命令的结果
 	for i, cmder := range exec {
-		key := fmt.Sprintf("%s%d", consts.VideoFavor, videoId[i])
+		key := fmt.Sprintf("%s%d", consts.VideoFavor, userId)
 		cmd, ok := cmder.(*redis.BoolCmd)
 		if ok {
 			exists, err := cmd.Result()
-			str := pipe.SIsMember(ctx, key, userId).String()
+			str := pipe.SIsMember(ctx, key, videoId[i]).String()
 			logx.Info(str)
 			if err != nil {
 				return result, err
@@ -127,9 +162,10 @@ func (m *DefaultRedisCliModel) GetIsFavoriteBatch(ctx context.Context, videoId [
 	return result, nil
 }
 
+// AddFavorite 添加点赞信息
 func (m *DefaultRedisCliModel) AddFavorite(ctx context.Context, videoId, userId uint64) error {
-	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, videoId)
-	_, err := m.client.SAdd(ctx, setKey, userId).Result()
+	setKey := fmt.Sprintf("%s%d", consts.VideoFavor, userId)
+	_, err := m.client.SAdd(ctx, setKey, videoId).Result()
 	return err
 }
 
@@ -259,7 +295,7 @@ func (m *DefaultRedisCliModel) SetVideoFavoriteCountTag(ctx context.Context, id 
 
 // SetVideoFavorTag 设置点赞关系的tag
 func (m *DefaultRedisCliModel) SetVideoFavorTag(ctx context.Context, videoId, userId uint64) error {
-	key := fmt.Sprintf("%s%s", consts.VideoFavorTag, videoId)
+	key := fmt.Sprintf("%s%d", consts.VideoFavorTag, videoId)
 	_, err := m.client.SAdd(ctx, key, userId).Result()
 	if err != nil {
 		return err

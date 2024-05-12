@@ -2,7 +2,7 @@ package logic
 
 import (
 	"context"
-	"fmt"
+	"mini-tiktok/common/consts"
 	"mini-tiktok/service/favorite/internal/svc"
 	"mini-tiktok/service/favorite/pb/favorite"
 
@@ -24,23 +24,31 @@ func NewLikeListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *LikeList
 }
 
 func (l *LikeListLogic) LikeList(in *favorite.LikeListRequest) (*favorite.LikeListResponse, error) {
-
-	list, err := l.svcCtx.FavoriteModel.GetByUserId(in.UserId)
-
 	resp := new(favorite.LikeListResponse)
+	resList, err := l.svcCtx.RedisCli.GetFavorSet(l.ctx, in.UserId)
 	if err != nil {
-		resp.Code = 1
-		resp.Message = "查询失败"
-		return resp, nil
+		logx.Error(err)
+		return nil, err
 	}
-	var resList []uint64
-	for _, item := range *list {
-		fmt.Printf("%+v\n", item)
-		resList = append(resList, uint64(item.VideoId))
+	if len(resList) == 0 {
+		list, err := l.svcCtx.FavoriteModel.GetByUserId(in.UserId)
+		logx.Info(list)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
+		for _, item := range *list {
+			resList = append(resList, uint64(item.VideoId))
+		}
+		err = l.svcCtx.RedisCli.AddFavorSet(l.ctx, in.UserId, resList)
+		if err != nil {
+			logx.Error(err)
+			return nil, err
+		}
 	}
 
 	return &favorite.LikeListResponse{
-		Code:    0,
+		Code:    consts.SUCCEED,
 		VideoId: resList,
 		Message: "查询成功",
 	}, nil

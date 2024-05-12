@@ -52,8 +52,6 @@ func (l *GetFavoriteCountBatchLogic) GetFavoriteCountBatch(in *favorite.GetFavor
 	for i, _ := range batch {
 		res = append(res, uint64(batch[i]))
 	}
-	l.Logger.Info(res)
-	l.Logger.Info(batch)
 	return &favorite.GetFavoriteCountBatchResponse{
 		Count: res,
 	}, nil

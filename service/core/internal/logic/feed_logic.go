@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"github.com/zeromicro/go-zero/core/mr"
 	"mini-tiktok/service/core/internal/svc"
 	"mini-tiktok/service/core/internal/types"
 	"mini-tiktok/service/core/models"
@@ -24,6 +25,11 @@ func NewFeedLogic(ctx context.Context, svcCtx *svc.ServiceContext) *FeedLogic {
 		ctx:    ctx,
 		svcCtx: svcCtx,
 	}
+}
+
+type pair struct {
+	Idx   int
+	Value *models.VideoModel
 }
 
 func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err error) {
@@ -80,21 +86,46 @@ func (l *FeedLogic) Feed(req *types.FeedRequest) (resp *types.FeedResponse, err 
 	// 视频信息
 	go func() {
 		batch, err := l.svcCtx.RedisCli.GetVideoInfoBatch(l.ctx, idList)
-		// todo mapreduce优化
-		for i, video := range batch {
-			if video == nil {
 
-				batch[i], err = l.svcCtx.VideoModel.FindOneById(idList[i])
+		//使用mapreduce并发查询
+		f1 := func(source chan<- interface{}) {
+			for i, v := range batch {
+				item := &pair{
+					Idx:   i,
+					Value: v,
+				}
+				source <- item
+			}
+		}
+		f2 := func(item interface{}, writer mr.Writer[*pair], cancel func(error)) {
+			video := item.(*pair)
+			i := video.Idx
+			if video.Value == nil {
+				value, err := l.svcCtx.VideoModel.FindOneById(idList[i])
+				video.Value = value
 				if err != nil {
 					logx.Error(err)
 				}
-				err := l.svcCtx.RedisCli.SetVideoInfo(l.ctx, batch[i])
+				err = l.svcCtx.RedisCli.SetVideoInfo(l.ctx, video.Value)
 				if err != nil {
 					logx.Error(err)
 				}
 			}
+			writer.Write(video)
 		}
-		videoInfoChan <- &batch
+		f3 := func(pipe <-chan *pair, writer mr.Writer[[]*models.VideoModel], cancel func(error)) {
+			lists := make([]*models.VideoModel, length)
+			for p := range pipe {
+				lists[p.Idx] = p.Value
+			}
+			writer.Write(lists)
+		}
+		list, err := mr.MapReduce(f1, f2, f3)
+		if err != nil {
+			logx.Error(err)
+		}
+
+		videoInfoChan <- &list
 	}()
 
 	// 点赞数量

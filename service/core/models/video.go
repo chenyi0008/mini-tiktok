@@ -95,10 +95,10 @@ func (m *DefaultVideoModel) FindOneById(id int) (*VideoModel, error) {
 }
 
 // AggregateVideoFavorCount 聚合查询视频视频点赞数量
-func (m *DefaultVideoModel) AggregateVideoFavorCount() (*map[uint]int, error) {
+func (m *DefaultVideoModel) AggregateVideoFavorCount() (*map[int]int, error) {
 	// 查询每个视频有多少个不同的用户ID关联
 	var videoFavorCounts []struct {
-		VideoID   uint
+		VideoID   int
 		UserCount int
 	}
 	err := m.Db.Table(consts.FAVORITE).
@@ -111,7 +111,7 @@ func (m *DefaultVideoModel) AggregateVideoFavorCount() (*map[uint]int, error) {
 	}
 
 	// 将结果存储到map中
-	videoFavorCountMap := make(map[uint]int)
+	videoFavorCountMap := make(map[int]int)
 	for _, item := range videoFavorCounts {
 		videoFavorCountMap[item.VideoID] = item.UserCount
 	}
@@ -119,10 +119,10 @@ func (m *DefaultVideoModel) AggregateVideoFavorCount() (*map[uint]int, error) {
 }
 
 // AggregateVideoCommentCount 聚合查询视频评论数量
-func (m *DefaultVideoModel) AggregateVideoCommentCount() (*map[uint]int, error) {
+func (m *DefaultVideoModel) AggregateVideoCommentCount() (*map[int]int, error) {
 
 	var videoCommentCounts []struct {
-		VideoID   uint
+		VideoID   int
 		UserCount int
 	}
 	err := m.Db.Table(consts.COMMENT).
@@ -135,9 +135,23 @@ func (m *DefaultVideoModel) AggregateVideoCommentCount() (*map[uint]int, error) 
 	}
 
 	// 将结果存储到map中
-	videoFavorCountMap := make(map[uint]int)
+	videoFavorCountMap := make(map[int]int)
 	for _, item := range videoCommentCounts {
 		videoFavorCountMap[item.VideoID] = item.UserCount
 	}
 	return &videoFavorCountMap, nil
+}
+
+// UpdateVideoFavorCount 更新点赞数量
+func (m *DefaultVideoModel) UpdateVideoFavorCount(id, count int) (*VideoModel, error) {
+	video := &VideoModel{}
+	err := m.Db.Table(consts.VIDEO).Where("id = ?", id).UpdateColumn("favorite_count", count).Error
+	return video, err
+}
+
+// UpdateVideoCommentCount 更新评论数量
+func (m *DefaultVideoModel) UpdateVideoCommentCount(id, count int) (*VideoModel, error) {
+	video := &VideoModel{}
+	err := m.Db.Preload(consts.VIDEO).Where("id = ?", id).UpdateColumn("comment_count", count).Error
+	return video, err
 }

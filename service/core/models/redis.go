@@ -121,3 +121,28 @@ func (m *RedisCliModel) GetVideoInfoBatch(ctx context.Context, ids []int) ([]*Vi
 	}
 	return videoList, err
 }
+
+func (m *RedisCliModel) DelVideoFavorCount(ctx context.Context) error {
+	err := m.client.Del(ctx, "video_count:video_favorite_count").Err()
+	return err
+}
+
+func (m *RedisCliModel) DelVideCommentCount(ctx context.Context) error {
+	err := m.client.Del(ctx, "video_count:video_comment_count").Err()
+	return err
+}
+
+// keys *
+func (m *RedisCliModel) getKeys(ctx context.Context, pattern string) ([]string, error) {
+	var keys []string
+
+	iter := m.client.Scan(ctx, 0, pattern, 0).Iterator()
+	for iter.Next(ctx) {
+		keys = append(keys, iter.Val())
+	}
+	if err := iter.Err(); err != nil {
+		return nil, err
+	}
+
+	return keys, nil
+}

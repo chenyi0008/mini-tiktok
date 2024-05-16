@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis/v8"
+	"gorm.io/gorm/utils"
 	"math/rand"
 	"mini-tiktok/common/consts"
 	"mini-tiktok/service/core/define"
+	"strconv"
 	"time"
 )
 
@@ -132,11 +134,10 @@ func (m *RedisCliModel) DelVideCommentCount(ctx context.Context) error {
 	return err
 }
 
-// keys *
-func (m *RedisCliModel) getKeys(ctx context.Context, pattern string) ([]string, error) {
+func (m *RedisCliModel) GetKeys(ctx context.Context, pattern string) ([]string, error) {
 	var keys []string
 
-	iter := m.client.Scan(ctx, 0, pattern, 0).Iterator()
+	iter := m.client.Scan(ctx, 0, pattern+"*", 0).Iterator()
 	for iter.Next(ctx) {
 		keys = append(keys, iter.Val())
 	}
@@ -146,3 +147,42 @@ func (m *RedisCliModel) getKeys(ctx context.Context, pattern string) ([]string, 
 
 	return keys, nil
 }
+
+// GetVideoFavorCountTag 获取视频点赞数量tag集合下的数据
+func (m *RedisCliModel) GetVideoFavorCountTag(ctx context.Context) ([]string, error) {
+	result, err := m.client.SMembers(ctx, consts.VideoFavoriteCountTag).Result()
+	return result, err
+}
+
+func (m *RedisCliModel) GetVideoFavorCount(ctx context.Context, id interface{}) (int, error) {
+	result, err := m.client.HGet(ctx, consts.VideoFavoriteCount, utils.ToString(id)).Result()
+	if err != nil {
+		return 0, err
+	}
+	atoi, err := strconv.Atoi(result)
+	if err != nil {
+		return 0, err
+	}
+	return atoi, err
+}
+
+//// todo
+//func (m *RedisCliModel) ScheduleFavorCountDataWrite(ctx context.Context) error {
+//	// 获取tag里的set
+//	result, err := m.client.SMembers(ctx, consts.VideoFavoriteCountTag).Result()
+//	if err != nil {
+//		logx.Error(err)
+//		return err
+//	}
+//	for _, s := range result {
+//		// 从redis读数据
+//		count, err := m.GetVideoFavorCount(ctx, s)
+//		if err != nil {
+//			logx.Error(err)
+//			return err
+//		}
+//		// 存入mysql
+//
+//	}
+//
+//}

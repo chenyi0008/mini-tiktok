@@ -53,6 +53,7 @@ func (l *GiveLikeLogic) GiveLike(in *favorite.GiveLikeRequest) (*favorite.Respon
 	// 添加点赞关系
 	go func() {
 		defer wg.Done()
+		logx.Error("点赞！！", "videoId:", in.VideoId, "  userId:", in.UserId)
 		_, err := l.svcCtx.RedisCli.SetFavor(l.ctx, in.VideoId, in.UserId)
 		errChan <- err
 	}()

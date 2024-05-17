@@ -13,16 +13,17 @@ import (
 )
 
 type ServiceContext struct {
-	Config      config.Config
-	Engine      *gorm.DB
-	RDB         *redis.Client
-	RedisCli    *models.RedisCliModel
-	Auth        rest.Middleware
-	UserModel   *models.DefaultUserModel
-	VideoModel  *models.DefaultVideoModel
-	FollowRpc   follow.FollowClient
-	FavoriteRpc favorite.FavoriteClient
-	MessageRpc  message.MessageClient
+	Config        config.Config
+	Engine        *gorm.DB
+	RDB           *redis.Client
+	RedisCli      *models.RedisCliModel
+	Auth          rest.Middleware
+	UserModel     *models.DefaultUserModel
+	VideoModel    *models.DefaultVideoModel
+	FavoriteModel *models.DefaultFavoriteModel
+	FollowRpc     follow.FollowClient
+	FavoriteRpc   favorite.FavoriteClient
+	MessageRpc    message.MessageClient
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -30,15 +31,16 @@ func NewServiceContext(c config.Config) *ServiceContext {
 	redisEngine := models.InitRedis(c)
 	engine.Logger.LogMode(4)
 	return &ServiceContext{
-		Config:      c,
-		Engine:      engine,
-		RDB:         redisEngine,
-		RedisCli:    models.NewRedisCli(redisEngine),
-		UserModel:   models.NewUserModel(engine),
-		VideoModel:  models.NewVideoModel(engine),
-		Auth:        middleware.NewAuthMiddleware().Handle,
-		FollowRpc:   *config.InitFollowClient(c.Etcd.Host),
-		FavoriteRpc: *config.InitFavoriteClient(c.Etcd.Host),
-		MessageRpc:  *config.InitMessageClient(c.Etcd.Host),
+		Config:        c,
+		Engine:        engine,
+		RDB:           redisEngine,
+		RedisCli:      models.NewRedisCli(redisEngine),
+		UserModel:     models.NewUserModel(engine),
+		VideoModel:    models.NewVideoModel(engine),
+		FavoriteModel: models.NewFavoriteModel(engine),
+		Auth:          middleware.NewAuthMiddleware().Handle,
+		FollowRpc:     *config.InitFollowClient(c.Etcd.Host),
+		FavoriteRpc:   *config.InitFavoriteClient(c.Etcd.Host),
+		MessageRpc:    *config.InitMessageClient(c.Etcd.Host),
 	}
 }

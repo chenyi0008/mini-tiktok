@@ -154,6 +154,12 @@ func (m *RedisCliModel) GetVideoFavorCountTag(ctx context.Context) ([]string, er
 	return result, err
 }
 
+// GetVideoFavorTag 获取视频点赞关系tag集合下的数据
+func (m *RedisCliModel) GetVideoFavorTag(ctx context.Context, key string) ([]string, error) {
+	result, err := m.client.SMembers(ctx, key).Result()
+	return result, err
+}
+
 func (m *RedisCliModel) GetVideoFavorCount(ctx context.Context, id interface{}) (int, error) {
 	result, err := m.client.HGet(ctx, consts.VideoFavoriteCount, utils.ToString(id)).Result()
 	if err != nil {
@@ -164,6 +170,13 @@ func (m *RedisCliModel) GetVideoFavorCount(ctx context.Context, id interface{}) 
 		return 0, err
 	}
 	return atoi, err
+}
+
+// VideoFavorExist 判断点赞关系是否存在
+func (m *RedisCliModel) VideoFavorExist(ctx context.Context, videoId, userId int) (bool, error) {
+	key := fmt.Sprintf("%s%d", consts.VideoFavor, userId)
+	result, err := m.client.SIsMember(ctx, key, videoId).Result()
+	return result, err
 }
 
 //// todo

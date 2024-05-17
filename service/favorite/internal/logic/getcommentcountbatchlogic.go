@@ -23,7 +23,6 @@ func NewGetCommentCountBatchLogic(ctx context.Context, svcCtx *svc.ServiceContex
 	}
 }
 
-// todo fix bug
 func (l *GetCommentCountBatchLogic) GetCommentCountBatch(in *favorite.GetCommentCountBatchRequest) (*favorite.GetCommentCountBatchResponse, error) {
 	batch, missList, err := l.svcCtx.RedisCli.GetCommentCountBatch(l.ctx, in.VideoIdList)
 	if err != nil {

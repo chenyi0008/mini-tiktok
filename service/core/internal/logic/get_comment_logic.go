@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"fmt"
 	"github.com/jinzhu/copier"
 	"mini-tiktok/service/favorite/pb/favorite"
 
@@ -28,7 +27,6 @@ func NewGetCommentLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetCom
 
 func (l *GetCommentLogic) GetComment(req *types.GetCommentRequest) (resp *types.GetCommentResponse, err error) {
 	resp = new(types.GetCommentResponse)
-	fmt.Printf("token:%+v", req)
 	result, err := l.svcCtx.FavoriteRpc.GetCommentList(l.ctx, &favorite.GetCommentRequest{
 		VideoId: uint64(req.VideoId),
 	})

@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis/v8"
@@ -317,4 +318,81 @@ func (m *DefaultRedisCliModel) GetVideoFavorCountTag(ctx context.Context, videoI
 		list = append(list, item)
 	}
 	return list, err
+}
+
+// GetComment 获取评论
+func (m *DefaultRedisCliModel) GetComment(ctx context.Context, videoId uint64) ([]Comment, error) {
+	key := fmt.Sprintf("%s%d", consts.VideoComment, videoId)
+	set, err := m.client.ZRandMember(ctx, key, 100, false).Result()
+	list := make([]Comment, 0)
+	if err != nil && err != redis.Nil {
+		return nil, errors.Errorf("err: %s  redis feedback: %s", err.Error())
+	} else if len(set) == 1 && set[0] == "tag" {
+		//防止缓存击穿 处理tag
+		return list, err
+	} else if len(set) == 0 {
+		// 未命中
+		_, err := m.client.ZAdd(ctx, key, &redis.Z{
+			Score:  0,
+			Member: "tag",
+		}).Result()
+		if err != nil {
+			logx.Error("client.SAdd err: ", err)
+			return nil, err
+		}
+		return list, redis.Nil
+	}
+
+	// 处理tag标签
+	logx.Info("tag set:", set)
+	for i, s := range set {
+		logx.Info("i:", i, "  item:", s)
+	}
+	if set[len(set)-1] == "tag" {
+		set = set[:len(set)-1]
+	} else {
+		_, err := m.client.ZAdd(ctx, key, &redis.Z{
+			Score:  0,
+			Member: "tag",
+		}).Result()
+		if err != nil {
+			logx.Error("client.SAdd err: ", err)
+			return nil, err
+		}
+	}
+	for _, item := range set {
+		comment := Comment{}
+		err := json.Unmarshal([]byte(item), &comment)
+		if err != nil {
+			logx.Error("json.Unmarshal err:", err)
+			return nil, err
+		}
+		list = append(list, comment)
+	}
+	return list, err
+}
+
+// AddComment 添加评论
+func (m *DefaultRedisCliModel) AddComment(ctx context.Context, videoId uint64, commentList []Comment) error {
+
+	key := fmt.Sprintf("%s%d", consts.VideoComment, videoId)
+	mList := make([]*redis.Z, 0)
+	for _, comment := range commentList {
+		marshal, err := json.Marshal(comment)
+		if err != nil {
+			logx.Error("json.Marshal err:", err)
+			return err
+		}
+		mList = append(mList, &redis.Z{
+			Score:  float64(comment.CreatedAt.Unix()),
+			Member: string(marshal),
+		})
+	}
+
+	_, err := m.client.ZAdd(ctx, key, mList...).Result()
+	if err != nil {
+		logx.Error("client.ZAdd err: ", err)
+		return err
+	}
+	return nil
 }

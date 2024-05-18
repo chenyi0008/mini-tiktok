@@ -178,24 +178,3 @@ func (m *RedisCliModel) VideoFavorExist(ctx context.Context, videoId, userId int
 	result, err := m.client.SIsMember(ctx, key, videoId).Result()
 	return result, err
 }
-
-//// todo
-//func (m *RedisCliModel) ScheduleFavorCountDataWrite(ctx context.Context) error {
-//	// 获取tag里的set
-//	result, err := m.client.SMembers(ctx, consts.VideoFavoriteCountTag).Result()
-//	if err != nil {
-//		logx.Error(err)
-//		return err
-//	}
-//	for _, s := range result {
-//		// 从redis读数据
-//		count, err := m.GetVideoFavorCount(ctx, s)
-//		if err != nil {
-//			logx.Error(err)
-//			return err
-//		}
-//		// 存入mysql
-//
-//	}
-//
-//}

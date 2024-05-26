@@ -2,6 +2,7 @@ package logic
 
 import (
 	"context"
+	"golang.org/x/exp/slices"
 	"mini-tiktok/common/consts"
 	"mini-tiktok/service/favorite/internal/svc"
 	"mini-tiktok/service/favorite/pb/favorite"
@@ -46,7 +47,7 @@ func (l *LikeListLogic) LikeList(in *favorite.LikeListRequest) (*favorite.LikeLi
 			return nil, err
 		}
 	}
-
+	slices.Reverse(resList)
 	return &favorite.LikeListResponse{
 		Code:    consts.SUCCEED,
 		VideoId: resList,

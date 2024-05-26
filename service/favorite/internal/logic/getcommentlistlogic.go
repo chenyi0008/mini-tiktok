@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-redis/redis/v8"
 	"github.com/jinzhu/copier"
+	"golang.org/x/exp/slices"
 	"mini-tiktok/service/favorite/pb/favorite"
 
 	"mini-tiktok/service/favorite/internal/svc"
@@ -27,7 +28,6 @@ func NewGetCommentListLogic(ctx context.Context, svcCtx *svc.ServiceContext) *Ge
 
 func (l *GetCommentListLogic) GetCommentList(in *favorite.GetCommentRequest) (*favorite.GetCommentResponse, error) {
 	resp := new(favorite.GetCommentResponse)
-	// todo redis优化
 	commentList, err := l.svcCtx.RedisCli.GetComment(l.ctx, in.VideoId)
 	if err != nil && err != redis.Nil {
 		logx.Error("RedisCli.GetComment err: ", err)
@@ -35,21 +35,21 @@ func (l *GetCommentListLogic) GetCommentList(in *favorite.GetCommentRequest) (*f
 	} else if err == redis.Nil {
 		//未命中 第一次加载
 		logx.Info("GetCommentList 未命中：", in.VideoId)
-		list, err := l.svcCtx.CommentModel.GetByVideoId(uint(in.VideoId))
+		commentList, err = l.svcCtx.CommentModel.GetByVideoId(uint(in.VideoId))
 		if err != nil {
 			logx.Error("CommentModel.GetByVideoId err:", err)
 			return nil, err
 		}
-		if len(list) == 0 {
+		if len(commentList) == 0 {
 
 		} else {
-			err = l.svcCtx.RedisCli.AddComment(l.ctx, in.VideoId, list)
+			err = l.svcCtx.RedisCli.AddComment(l.ctx, in.VideoId, commentList)
 			if err != nil {
 				logx.Error("RedisCli.AddComment err: ", err)
 				return nil, err
 			}
 		}
-
+		slices.Reverse(commentList)
 	}
 	copier.Copy(&resp.CommentList, &commentList)
 

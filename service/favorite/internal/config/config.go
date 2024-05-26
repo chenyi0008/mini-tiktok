@@ -14,4 +14,8 @@ type Config struct {
 		Password string
 		DB       int
 	}
+	Queue struct {
+		Addr  string
+		Topic string
+	}
 }

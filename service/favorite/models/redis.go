@@ -7,6 +7,8 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/go-redis/redis/v8"
 	"github.com/zeromicro/go-zero/core/logx"
+	"log"
+	"math/rand"
 	"mini-tiktok/common/consts"
 	"reflect"
 	"strconv"
@@ -344,10 +346,6 @@ func (m *DefaultRedisCliModel) GetComment(ctx context.Context, videoId uint64) (
 	}
 
 	// 处理tag标签
-	logx.Info("tag set:", set)
-	for i, s := range set {
-		logx.Info("i:", i, "  item:", s)
-	}
 	if set[len(set)-1] == "tag" {
 		set = set[:len(set)-1]
 	} else {
@@ -394,5 +392,24 @@ func (m *DefaultRedisCliModel) AddComment(ctx context.Context, videoId uint64, c
 		logx.Error("client.ZAdd err: ", err)
 		return err
 	}
+
+	//添加过期时间
+	_, err = m.client.Expire(ctx, key, hour()).Result()
+	if err != nil {
+		log.Fatalf("Could not set expiration for key: %v", err)
+	}
+
 	return nil
+}
+
+func (m *DefaultRedisCliModel) DelComment(ctx context.Context, videoId uint64) error {
+	key := fmt.Sprintf("%s%d", consts.VideoComment, videoId)
+	_, err := m.client.Del(ctx, key).Result()
+	return err
+}
+
+func hour() time.Duration {
+	rand.Seed(time.Now().UnixNano())
+	randomNumber := rand.Intn(2) + 1
+	return time.Duration(randomNumber) * time.Hour
 }
